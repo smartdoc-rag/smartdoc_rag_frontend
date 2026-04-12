@@ -1,10 +1,11 @@
 import { BrowserRouter, Route, Routes } from "react-router";
 import UserRoutes from "./routes/UserRoutes";
 import AuthRoutes from "./routes/AuthRoutes";
+import { ThemeProvider } from "./components/common/ThemeProvider";
 
 export default function App() {
   return (
-    <>
+    <ThemeProvider>
       <BrowserRouter>
         <Routes>
           <Route
@@ -19,6 +20,6 @@ export default function App() {
 
         </Routes>
       </BrowserRouter>
-    </>
+    </ThemeProvider>
   )
 }
