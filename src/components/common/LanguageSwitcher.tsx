@@ -9,8 +9,6 @@ const languages = [
 export function LanguageSwitcher() {
   const { i18n } = useTranslation();
 
-  const currentLanguage = languages.find(lang => lang.code === i18n.language) || languages[0];
-
   return (
     <div className="relative inline-block">
       <div className="flex items-center gap-2 px-3 py-2 rounded-md border border-input bg-background hover:bg-accent hover:text-accent-foreground cursor-pointer">
