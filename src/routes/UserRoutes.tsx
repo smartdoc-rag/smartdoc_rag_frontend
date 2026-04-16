@@ -7,7 +7,7 @@ export default function UserRoutes() {
     return (
         <Routes>
             <Route element={<UserLayout />}>
-                <Route path="/" element={<HomePage />} />
+                <Route path="/*" element={<HomePage />} />
                 <Route path="/c/:id" element={<ChatPage />} />
             </Route>
         </Routes>
