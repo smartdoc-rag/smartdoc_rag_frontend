@@ -1,0 +1,66 @@
+{
+  "app": {
+    "title": "SmartDoc AI",
+    "description": "Intelligent Document Q&A System",
+    "loading": "Loading...",
+    "error": "An error occurred"
+  },
+  "auth": {
+    "login": "Login",
+    "register": "Register",
+    "logout": "Logout",
+    "email": "Email",
+    "password": "Password",
+    "forgotPassword": "Forgot password?",
+    "rememberMe": "Remember me",
+    "noAccount": "Don't have an account?",
+    "hasAccount": "Already have an account?"
+  },
+  "navigation": {
+    "home": "Home",
+    "documents": "Documents",
+    "chat": "Chat",
+    "settings": "Settings",
+    "profile": "Profile"
+  },
+  "document": {
+    "upload": "Upload Document",
+    "uploadDescription": "Upload PDF or DOCX files for analysis",
+    "recent": "Recent Documents",
+    "empty": "No documents yet",
+    "delete": "Delete",
+    "view": "View",
+    "chat": "Chat with Document"
+  },
+  "chat": {
+    "placeholder": "Ask a question about your document...",
+    "send": "Send",
+    "clear": "Clear",
+    "thinking": "Thinking...",
+    "sources": "Sources"
+  },
+  "settings": {
+    "language": "Language",
+    "theme": "Theme",
+    "dark": "Dark",
+    "light": "Light",
+    "system": "System",
+    "save": "Save Changes"
+  },
+  "common": {
+    "cancel": "Cancel",
+    "confirm": "Confirm",
+    "save": "Save",
+    "delete": "Delete",
+    "edit": "Edit",
+    "close": "Close",
+    "search": "Search",
+    "filter": "Filter",
+    "sort": "Sort",
+    "viewAll": "View All",
+    "back": "Back",
+    "next": "Next",
+    "previous": "Previous",
+    "upload": "Upload"
+  }
+}
