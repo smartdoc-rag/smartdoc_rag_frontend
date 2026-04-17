@@ -9,10 +9,12 @@ export default function UserLayout() {
     return (
         <SidebarProvider>
             <AppSidebar />
-            <main>
-                <SidebarTrigger />
+            <div>
+                <SidebarTrigger className="absolute z-10" size="lg" />
+            </div>
+            <div className="flex h-screen w-full items-center justify-center">
                 <Outlet />
-            </main>
+            </div>
         </SidebarProvider>
     )
 }
