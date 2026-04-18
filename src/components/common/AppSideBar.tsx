@@ -14,20 +14,23 @@ import { NavUser } from "./SidebarUser"
 import { SquarePen } from "lucide-react"
 import { ModeToggle } from "./ModeToggle"
 import { useLocation, useNavigate } from "react-router"
+import { Button } from "../ui/button"
+import { useAuthStore } from "@/stores/useAuthStore"
 
-const user = {
-    name: 'phong',
-    email: 'test123@gmail.com',
-    avatar: 'C'
-}
+
 
 export function AppSidebar() {
     const [active, setActive] = useState("instructions-general")
     const location = useLocation()
     const navigate = useNavigate()
+    const { user, signOut } = useAuthStore()
 
     const pathname = location.pathname
 
+    const handleSignOut = async () => {
+        await signOut()
+        navigate("/auth/sign-in")
+    }
     return (
         <Sidebar>
             {/* HEADER */}
@@ -169,9 +172,19 @@ export function AppSidebar() {
             </SidebarContent>
 
             <SidebarFooter className="p-4 text-xs text-muted-foreground">
-                <NavUser
-                    user={user}
-                />
+                {
+                    user
+                        ?
+                        (<NavUser user={user} onSignOut={handleSignOut} />)
+                        :
+                        (
+                            <Button
+                                onClick={() => navigate('/auth/sign-in')}
+                            >
+                                Đăng nhập
+                            </Button>
+                        )
+                }
             </SidebarFooter>
         </Sidebar>
     )
