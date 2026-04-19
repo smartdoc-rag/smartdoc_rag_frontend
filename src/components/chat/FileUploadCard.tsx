@@ -1,6 +1,6 @@
+// FileUploadCard.tsx
 import { FileText, FileType, X } from "lucide-react";
 import { Button } from "../ui/button";
-import { Card } from "../ui/card";
 import { formatFileSize } from "@/lib/utils";
 
 export default function FileUploadCard({ file, onRemove }: { file: File; onRemove?: () => void }) {
@@ -8,38 +8,33 @@ export default function FileUploadCard({ file, onRemove }: { file: File; onRemov
         const name = file.name.toLowerCase();
         const type = file.type;
 
-        // Docx
         if (type.includes('word') || name.endsWith('.docx') || name.endsWith('.doc')) {
-            return <FileType className="h-10 w-10 text-[#2B579A] dark:text-[#6B9FD2]" />;
+            return <FileType className="h-12 w-12 text-[#2B579A] dark:text-[#6B9FD2]" />;
         }
-        // PDF
         if (type === 'application/pdf' || name.endsWith('.pdf')) {
-            return <FileText className="h-10 w-10 text-[#E02128] dark:text-[#F87171]" />;
+            return <FileText className="h-12 w-12 text-[#E02128] dark:text-[#F87171]" />;
         }
-        // Txt
         if (type === 'text/plain' || name.endsWith('.txt')) {
-            return <FileText className="h-10 w-10 text-[#6B7280] dark:text-[#9CA3AF]" />;
+            return <FileText className="h-12 w-12 text-[#6B7280] dark:text-[#9CA3AF]" />;
         }
-        // Khác
-        return <FileText className="h-10 w-10 text-muted-foreground" />;
+        return <FileText className="h-12 w-12 text-muted-foreground" />;
     };
 
     return (
-        <Card className="bg-card border relative p-3 group hover:shadow-md transition-shadow">
+        <div className="relative bg-muted/50 rounded-lg p-2 pr-6 group hover:bg-muted transition-colors">
             <Button
                 variant="ghost"
                 size="icon"
-                className="absolute right-1 top-1 h-6 w-6 rounded-full bg-background shadow-md opacity-0 group-hover:opacity-100 transition-opacity"
+                className="absolute right-0 top-0 h-5 w-5 rounded-full p-0 opacity-0 group-hover:opacity-100 transition-opacity"
                 onClick={onRemove}
             >
-                <X size={12} />
+                <X size={10} />
             </Button>
 
             <div className="flex items-center gap-2">
                 {getFileIcon(file)}
-
                 <div className="flex flex-col min-w-0 flex-1">
-                    <span className="text-sm font-medium truncate">
+                    <span className="text-md font-medium truncate max-w-60">
                         {file.name}
                     </span>
                     <span className="text-xs text-muted-foreground">
@@ -47,6 +42,6 @@ export default function FileUploadCard({ file, onRemove }: { file: File; onRemov
                     </span>
                 </div>
             </div>
-        </Card>
+        </div>
     );
 }

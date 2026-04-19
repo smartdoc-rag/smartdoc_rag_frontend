@@ -16,11 +16,12 @@ import { ModeToggle } from "./ModeToggle"
 import { useLocation, useNavigate } from "react-router"
 import { Button } from "../ui/button"
 import { useAuthStore } from "@/stores/useAuthStore"
+import ConversationList from "../conversation/ConversationList"
 
 
 
 export function AppSidebar() {
-    const [active, setActive] = useState("instructions-general")
+    const [active, setActive] = useState("")
     const location = useLocation()
     const navigate = useNavigate()
     const { user, signOut } = useAuthStore()
@@ -161,14 +162,10 @@ export function AppSidebar() {
                 </SidebarGroup>
 
                 {/* History */}
-                <SidebarGroup>
-                    <SidebarGroupLabel>Lịch sử</SidebarGroupLabel>
-                    {[...Array(10)].map((_, i) => (
-                        <SidebarMenuButton>
-                            Lịch sử chat {i}
-                        </SidebarMenuButton>
-                    ))}
-                </SidebarGroup>
+                <ConversationList
+                    active={active}
+                    setActive={setActive}
+                />
             </SidebarContent>
 
             <SidebarFooter className="p-4 text-xs text-muted-foreground">
