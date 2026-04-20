@@ -5,6 +5,7 @@ export interface FileInfo {
 	file_name: string;
 	file_path: string; // đường dẫn file
 	file_size: number;
+	file_type: string;
 	scope: string;
 	created_at: string;
 }
@@ -12,10 +13,13 @@ export interface FileInfo {
 export const fileService = {
 	// lay het file da upload
 	getFiles: async (conversationId: number): Promise<FileInfo[]> => {
-		const res = await api.get<FileInfo[]>(`/file/${conversationId}/files/`);
+		const res = await api.get<{
+			data: {
+				items: FileInfo[];
+			};
+		}>(`/file/${conversationId}/files/`);
 
-		console.log("File: " + res);
-		return res.data;
+		return res.data.data.items;
 	},
 
 	// Upload nhiều file
