@@ -31,7 +31,7 @@ export default function ConversationCard({
 
 	return (
 		<>
-			<div className="relative group/item">
+			<div className="relative group/item my-1.25">
 				<SidebarMenuButton
 					isActive={isActive}
 					onClick={() => {
