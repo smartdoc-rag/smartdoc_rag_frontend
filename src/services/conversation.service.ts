@@ -1,17 +1,20 @@
 import api from "@/lib/axios";
+import type { ApiResponse } from "@/types/common/response.type";
 import type { Conversation } from "@/types/conversation.type";
 
 export const conversationService = {
 	createConversation: async (title: string): Promise<Conversation> => {
-		try {
-			const res = await api.post<Conversation>("/conversation/create", {
-				title,
-			});
-			return res.data;
-		} catch (error) {
-			console.error(error);
-			throw new Error("Lỗi khi tạo đoạn chat mới");
-		}
+		const res = await api.post<ApiResponse<Conversation>>("/conversation/create", {
+			title,
+		});
+
+		const { success, data, message, error } = res.data;
+
+		if (!success || !data) {
+            throw new Error(error || message || "Đăng ký thất bại");
+        }
+
+		return data
 	},
 
 	getAllConversations: async (): Promise<Conversation[]> => {
@@ -29,7 +32,7 @@ export const conversationService = {
 		}
 	},
 
-	updateConservationTitle: async ({
+	updateConversationTitle: async ({
 		convId,
 		newTitle,
 	}: {

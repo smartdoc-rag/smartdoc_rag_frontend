@@ -7,7 +7,7 @@ export default function ChatPage() {
 	return (
 		<div className="flex h-screen w-full items-center justify-center relative">
 			<div className="w-full max-w-4xl px-4">
-				<ChatMode conversationId={Number(id)} />
+				<ChatMode conversationId={id ? Number(id) : undefined} />
 			</div>
 		</div>
 	);

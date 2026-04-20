@@ -1,10 +1,8 @@
-import { useState } from "react"
+import { useEffect, useState } from "react"
 import {
     Sidebar,
     SidebarContent,
     SidebarFooter,
-    SidebarGroup,
-    SidebarGroupLabel,
     SidebarHeader,
     SidebarMenu,
     SidebarMenuItem,
@@ -17,6 +15,8 @@ import { useLocation, useNavigate } from "react-router"
 import { Button } from "../ui/button"
 import { useAuthStore } from "@/stores/useAuthStore"
 import ConversationList from "../conversation/ConversationList"
+import SearchConfig from "../config/SearchConfig"
+import SidebarSection from "./SidebarSection"
 
 
 
@@ -27,6 +27,10 @@ export function AppSidebar() {
     const { user, signOut } = useAuthStore()
 
     const pathname = location.pathname
+
+    useEffect(() => {
+        setActive(pathname)
+    }, [pathname])
 
     const handleSignOut = async () => {
         await signOut()
@@ -41,17 +45,22 @@ export function AppSidebar() {
                 </div>
 
                 <div className="flex flex-col mb-5 gap-1 group-data-[collapsible=icon]:hidden">
-                    <span className="text-lg font-semibold">SmartDoc AI</span>
+                    <span className="text-xl font-bold text-primary">SmartDoc AI</span>
                 </div>
 
                 <SidebarMenu>
                     <SidebarMenuItem>
                         <SidebarMenuButton
+                            className="cursor-pointer py-2"
                             isActive={pathname === "/"}
-                            onClick={() => navigate("/")}
+                            onClick={() => {
+                                navigate("/")
+                                setActive("")
+                            }
+                            }
                         >
                             <SquarePen />
-                            <span>Đoạn chat mới</span>
+                            <span className="text-[15px]">Đoạn chat mới</span>
                         </SidebarMenuButton>
                     </SidebarMenuItem>
                 </SidebarMenu>
@@ -60,112 +69,29 @@ export function AppSidebar() {
             <SidebarContent>
 
                 {/* Instructions */}
-                <SidebarGroup>
-                    <SidebarGroupLabel>Instructions</SidebarGroupLabel>
-
-                    <SidebarMenu>
-                        <SidebarMenuItem>
-                            <SidebarMenuButton
-                                isActive={active === "instructions-general"}
-                                onClick={() => setActive("instructions-general")}
-                            >
-                                General Instructions
-                            </SidebarMenuButton>
-                        </SidebarMenuItem>
-
-                        <SidebarMenuItem>
-                            <SidebarMenuButton
-                                isActive={active === "instructions-custom"}
-                                onClick={() => setActive("instructions-custom")}
-                            >
-                                Custom Prompt
-                            </SidebarMenuButton>
-                        </SidebarMenuItem>
-
-                        <SidebarMenuItem>
-                            <SidebarMenuButton
-                                isActive={active === "instructions-examples"}
-                                onClick={() => setActive("instructions-examples")}
-                            >
-                                Examples
-                            </SidebarMenuButton>
-                        </SidebarMenuItem>
-                    </SidebarMenu>
-                </SidebarGroup>
+                <SidebarSection
+                    title="Instruction"
+                >
+                    <span>Instruction 12341</span>
+                </SidebarSection>
 
                 {/* Settings */}
-                <SidebarGroup>
-                    <SidebarGroupLabel> Settings</SidebarGroupLabel>
-
-                    <SidebarMenu>
-                        <SidebarMenuItem>
-                            <SidebarMenuButton
-                                isActive={active === "settings-temperature"}
-                                onClick={() => setActive("settings-temperature")}
-                            >
-                                Temperature
-                            </SidebarMenuButton>
-                        </SidebarMenuItem>
-
-                        <SidebarMenuItem>
-                            <SidebarMenuButton
-                                isActive={active === "settings-tokens"}
-                                onClick={() => setActive("settings-tokens")}
-                            >
-                                Max Tokens
-                            </SidebarMenuButton>
-                        </SidebarMenuItem>
-
-                        <SidebarMenuItem>
-                            <SidebarMenuButton
-                                isActive={active === "settings-top-p"}
-                                onClick={() => setActive("settings-top-p")}
-                            >
-                                Top P
-                            </SidebarMenuButton>
-                        </SidebarMenuItem>
-                    </SidebarMenu>
-                </SidebarGroup>
-
-                {/* Model */}
-                <SidebarGroup>
-                    <SidebarGroupLabel>Model</SidebarGroupLabel>
-
-                    <SidebarMenu>
-                        <SidebarMenuItem>
-                            <SidebarMenuButton
-                                isActive={active === "model-gpt4o"}
-                                onClick={() => setActive("model-gpt4o")}
-                            >
-                                GPT-4o
-                            </SidebarMenuButton>
-                        </SidebarMenuItem>
-
-                        <SidebarMenuItem>
-                            <SidebarMenuButton
-                                isActive={active === "model-claude"}
-                                onClick={() => setActive("model-claude")}
-                            >
-                                Claude 3.5
-                            </SidebarMenuButton>
-                        </SidebarMenuItem>
-
-                        <SidebarMenuItem>
-                            <SidebarMenuButton
-                                isActive={active === "model-mixtral"}
-                                onClick={() => setActive("model-mixtral")}
-                            >
-                                Mixtral
-                            </SidebarMenuButton>
-                        </SidebarMenuItem>
-                    </SidebarMenu>
-                </SidebarGroup>
+                <SidebarSection
+                    title="Settings"
+                >
+                    <SearchConfig />
+                </SidebarSection>
 
                 {/* History */}
-                <ConversationList
-                    active={active}
-                    setActive={setActive}
-                />
+
+                <SidebarSection
+                    title="Lịch sử"
+                >
+                    <ConversationList
+                        active={active}
+                        setActive={setActive}
+                    />
+                </SidebarSection>
             </SidebarContent>
 
             <SidebarFooter className="p-4 text-xs text-muted-foreground">

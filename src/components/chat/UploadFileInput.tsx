@@ -1,4 +1,3 @@
-// FileUploadModeV2.tsx - Phiên bản to hơn
 import { useState, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { X, FileUp } from "lucide-react";
@@ -6,11 +5,21 @@ import { Card } from "../ui/card";
 import { Input } from "../ui/input";
 import { ScrollArea } from "../ui/scroll-area";
 import FileUploadCard from "./FileUploadCard";
+import { fileService } from "@/services/file.service";
+import { useCreateConv, useDeleteConv, useGetConversations } from "@/hooks/use-conversation";
+import { toast } from "sonner";
+import { useNavigate } from "react-router";
 
-export default function FileUploadModeV2() {
+export default function FileUploadInput() {
     const [files, setFiles] = useState<File[]>([]);
     const [isUploading, setIsUploading] = useState(false);
     const fileInputRef = useRef<HTMLInputElement>(null);
+
+    const { mutateAsync } = useCreateConv()
+    const { data: conversations } = useGetConversations()
+    const { mutate: deleteConv } = useDeleteConv()
+
+    const navigate = useNavigate()
 
     const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const selectedFiles = Array.from(e.target.files || []);
@@ -25,6 +34,42 @@ export default function FileUploadModeV2() {
     const handleDeleteFile = (indexToDelete: number) => {
         setFiles(prev => prev.filter((_, index) => index !== indexToDelete));
     };
+
+
+    const handleSubmit = async () => {
+        try {
+            setIsUploading(true);
+
+            const title = `Đoạn chat ${conversations ? conversations.length + 1 : 'mới'}`
+            const newConv = await mutateAsync(title)
+
+            if (!newConv) {
+                toast.error('Tạo hội thoại mới thất bại')
+                return;
+            }
+
+            const formData = new FormData();
+            files.forEach(file => {
+                formData.append("files", file);
+            });
+
+            console.log(newConv)
+            try {
+                await fileService.uploadFiles(newConv.id, formData)
+                navigate(`/c/${newConv.id}`)
+            } catch (err) {
+                console.error(err)
+                deleteConv(newConv.id)
+                toast.error('Lỗi')
+            }
+
+        } catch (err) {
+            console.error(err)
+            toast.error("Có lỗi xảy ra")
+        } finally {
+            setIsUploading(false); // ✅ QUAN TRỌNG
+        }
+    }
 
     return (
         <Card className="bg-card border p-6">
@@ -95,12 +140,7 @@ export default function FileUploadModeV2() {
                         className="w-full mt-4 h-10 text-base font-medium"
                         onClick={() => {
                             setIsUploading(true);
-                            // Upload logic
-                            setTimeout(() => {
-                                setIsUploading(false);
-                                setFiles([]);
-                                alert("Upload thành công!");
-                            }, 2000);
+                            handleSubmit()
                         }}
                         disabled={isUploading}
                     >

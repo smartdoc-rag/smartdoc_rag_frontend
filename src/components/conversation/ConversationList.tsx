@@ -1,5 +1,5 @@
 import { useGetConversations } from "@/hooks/use-conversation";
-import { SidebarGroup, SidebarGroupLabel } from "../ui/sidebar";
+import { SidebarMenuItem } from "../ui/sidebar";
 import ConversationCard from "./ConversationCard";
 import RenameConvDialog from "./RenameConvDialog";
 import { useState } from "react";
@@ -15,12 +15,16 @@ export default function ConversationList({ active, setActive }: Props) {
 	const [deletingConv, setDeletingConv] = useState<Conversation | null>(null);
 	const [renamingConv, setRenamingConv] = useState<Conversation | null>(null);
 
-	const { data: conversations } = useGetConversations();
+	const { data: conversations, isLoading } = useGetConversations();
+
+	if (isLoading) return (
+		<span>Loading...</span>
+	)
+
 	return (
 		<>
-			<SidebarGroup>
-				<SidebarGroupLabel>Lịch sử</SidebarGroupLabel>
 
+			<SidebarMenuItem className="ml-2">
 				{conversations?.map((conv) => {
 					const path = `/c/${conv.id}`;
 
@@ -35,7 +39,7 @@ export default function ConversationList({ active, setActive }: Props) {
 						/>
 					);
 				})}
-			</SidebarGroup>
+			</SidebarMenuItem>
 
 			{/* Dialogs */}
 			<RenameConvDialog
