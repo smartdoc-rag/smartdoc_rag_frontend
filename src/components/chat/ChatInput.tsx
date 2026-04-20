@@ -8,9 +8,13 @@ import { FileButton } from "./button/FileButton";
 
 interface ChatModeProps {
 	onSendMessage?: (message: string) => void;
+	conversationId?: number;
 }
 
-export default function ChatMode({ onSendMessage }: ChatModeProps) {
+export default function ChatMode({
+	onSendMessage,
+	conversationId,
+}: ChatModeProps) {
 	const [query, setQuery] = useState("");
 	const textareaRef = useRef<HTMLTextAreaElement>(null);
 	const [chatConfig, setChatConfig] = useState<ChatConfigType>({
@@ -77,7 +81,7 @@ export default function ChatMode({ onSendMessage }: ChatModeProps) {
 			/>
 			<div className="flex items-center justify-between pb-3">
 				<div className="flex items-center gap-1">
-					<FileButton />
+					<FileButton conversationId={conversationId} />
 					<ChatConfig onConfigChange={handleConfigChange} />
 					<ContextUsage />
 				</div>
