@@ -17,6 +17,7 @@ import {
 import { useRef, useState } from "react";
 import { toast } from "sonner";
 import { ArchiveDialog } from "./dialog/ArchiveDialog";
+import { ChunkConfigDialog } from "./dialog/ChunkConfigDialog";
 
 interface FileButtonProps {
 	conversationId?: number;
@@ -28,6 +29,17 @@ export function FileButton({ conversationId }: FileButtonProps) {
 	const [isUploading, setIsUploading] = useState(false);
 	const [open, setOpen] = useState(false);
 	const [archiveOpen, setArchiveOpen] = useState(false);
+
+	const [dialogOpen, setDialogOpen] = useState(false);
+	const [currentSize, setCurrentSize] = useState(1500);
+	const [currentOverlap, setCurrentOverlap] = useState(200);
+
+	const handleSaveConfig = (size: number, overlap: number) => {
+		// Lưu vào state, context, hoặc gọi API
+		setCurrentSize(size);
+		setCurrentOverlap(overlap);
+		console.log("Saved:", { size, overlap });
+	};
 
 	const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
 		const selectedFiles = Array.from(e.target.files || []);
@@ -84,11 +96,29 @@ export function FileButton({ conversationId }: FileButtonProps) {
 						<Plus />
 					</Button>
 				</PopoverTrigger>
-				<PopoverContent align="start" className="w-72">
+				<PopoverContent
+					align="start"
+					className="w-72"
+					onInteractOutside={(e) => {
+						if (dialogOpen) {
+							e.preventDefault(); // ← chặn đóng khi dialog đang mở
+						}
+					}}
+					onFocusOutside={(e) => {
+						if (dialogOpen) {
+							e.preventDefault(); // ← chặn mất focus
+						}
+					}}
+				>
 					<div className="space-y-3">
 						<div className="flex items-center justify-between">
 							<p className="text-sm font-medium">Upload config</p>
-							<Button variant="ghost" size="icon" className="h-6 w-6">
+							<Button
+								variant="ghost"
+								size="icon"
+								className="h-6 w-6"
+								onClick={() => setDialogOpen(true)}
+							>
 								<FolderCog className="h-3 w-3" />
 							</Button>
 						</div>
@@ -168,6 +198,15 @@ export function FileButton({ conversationId }: FileButtonProps) {
 				open={archiveOpen}
 				onOpenChange={setArchiveOpen}
 				conversationId={conversationId!}
+			/>
+
+			<ChunkConfigDialog
+				open={dialogOpen}
+				onOpenChange={setDialogOpen}
+				initialSize={currentSize}
+				initialOverlap={currentOverlap}
+				onSave={handleSaveConfig}
+				modal={true}
 			/>
 		</>
 	);
