@@ -1,5 +1,5 @@
-import { authService } from "@/services/authService";
-import { userService } from "@/services/userService";
+import { authService } from "@/services/auth.service";
+import { userService } from "@/services/user.service";
 import type { AuthStoreType } from "@/types/store.type";
 import { AxiosError } from "axios";
 import { toast } from "sonner";
