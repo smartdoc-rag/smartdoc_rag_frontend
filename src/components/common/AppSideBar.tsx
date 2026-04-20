@@ -1,4 +1,4 @@
-import { useState } from "react"
+import { useEffect, useState } from "react"
 import {
     Sidebar,
     SidebarContent,
@@ -28,6 +28,10 @@ export function AppSidebar() {
 
     const pathname = location.pathname
 
+    useEffect(() => {
+        setActive(pathname)
+    }, [pathname])
+
     const handleSignOut = async () => {
         await signOut()
         navigate("/auth/sign-in")
@@ -41,7 +45,7 @@ export function AppSidebar() {
                 </div>
 
                 <div className="flex flex-col mb-5 gap-1 group-data-[collapsible=icon]:hidden">
-                    <span className="text-lg font-semibold">SmartDoc AI</span>
+                    <span className="text-xl font-bold text-primary">SmartDoc AI</span>
                 </div>
 
                 <SidebarMenu>
