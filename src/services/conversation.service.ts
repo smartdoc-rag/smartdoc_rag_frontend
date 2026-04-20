@@ -1,6 +1,6 @@
 import api from "@/lib/axios";
 import type { ApiResponse } from "@/types/common/response.type";
-import type { Conversation } from "@/types/conversation.type";
+import type { Conversation, ConversationConfigParam } from "@/types/conversation.type";
 
 export const conversationService = {
 	createConversation: async (title: string): Promise<Conversation> => {
@@ -69,4 +69,31 @@ export const conversationService = {
 			throw new Error("Lỗi khi xóa hội thoại");
 		}
 	},
+
+	getConversationById: async(convId: number): Promise<Conversation> => {
+		const res = await api.get<ApiResponse<Conversation>>(`/conversation/${convId}`);
+
+		const { success, data, message, error } = res.data;
+
+		if (!success || !data) {
+            throw new Error(error || message || "Lấy hội thoại theo id thất bại");
+        }
+
+		return data
+	},
+
+	updateChunkConfig: async({id, chunk_size, chunk_overlap}: ConversationConfigParam) : Promise<Conversation>  => {
+		const res = await api.patch<ApiResponse<Conversation>>(`/conversation/${id}/chunk-config`,{
+			chunk_size,
+			chunk_overlap
+		});
+
+		const { success, data, message, error } = res.data;
+
+		if (!success || !data) {
+            throw new Error(error || message || "Cập nhật config conversation thất bại");
+        }
+
+		return data
+	}
 };

@@ -22,3 +22,22 @@ export interface AuthStoreType {
 
   handleError: (error: unknown, message: string) => void;
 }
+
+
+
+
+export interface ConfigStoreType {
+  searchConfig: string[],
+  mode: 'rag' | 'graph' | 'dual',
+  loading: boolean,
+  model: string,
+
+  setMode: (mode: 'rag' | 'graph' | 'dual' ) => void,
+
+  setSearchConfig: (config: string[]) => void,
+
+  setLoading: (loading: boolean) => void,
+
+  setModel: (model: string) => void
+
+}

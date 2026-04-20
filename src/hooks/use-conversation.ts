@@ -1,6 +1,6 @@
 import { conversationService } from "@/services/conversation.service";
 import { useAuthStore } from "@/stores/useAuthStore";
-import type { Conversation } from "@/types/conversation.type";
+import type { Conversation, ConversationConfigParam } from "@/types/conversation.type";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 
 
@@ -48,7 +48,9 @@ export const useCreateConv = () => {
 				id: Date.now(),
 				created_at: new Date(),
 				last_chat_at: new Date(),
-				title: title
+				title: title,
+				chunk_size: 1500,
+				chunk_overlap: 100
 			}
 
 			queryClient.setQueryData(
@@ -147,4 +149,32 @@ export const useDeleteConv = () => {
 	});
 };
 
+export const useGetConvById = (convId?: number) => {
+    const { user } = useAuthStore();
 
+    return useQuery({
+        queryKey: ["conversation", convId],
+        queryFn: () => {
+			if (!convId) throw new Error("convId is required");
+			return conversationService.getConversationById(convId);
+		},
+        enabled: !!user && !!convId,
+        refetchOnWindowFocus: false
+    });
+};
+
+export const useUpdateConvConfig = () => {
+	const { user } = useAuthStore();
+	const queryClient = useQueryClient();
+	
+	return useMutation({
+		mutationFn: (param : ConversationConfigParam) => {
+			if (!user) throw new Error("Unauthorized");
+			return conversationService.updateChunkConfig(param)
+		},
+
+		onSuccess: (res) => {
+			queryClient.invalidateQueries({queryKey: ["conversation", res.id]})
+		}
+	})
+}

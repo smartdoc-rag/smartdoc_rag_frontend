@@ -67,7 +67,7 @@ export default function FileUploadInput() {
             console.error(err)
             toast.error("Có lỗi xảy ra")
         } finally {
-            setIsUploading(false); // ✅ QUAN TRỌNG
+            setIsUploading(false);
         }
     }
 
