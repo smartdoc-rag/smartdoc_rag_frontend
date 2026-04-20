@@ -1,4 +1,3 @@
-// FileUploadModeV2.tsx - Phiên bản to hơn
 import { useState, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { X, FileUp } from "lucide-react";

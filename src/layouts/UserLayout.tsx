@@ -37,7 +37,7 @@ export default function UserLayout() {
 	}, []);
 
 	if (starting || loading) {
-		return null;
+		return null
 	}
 
 	return (
