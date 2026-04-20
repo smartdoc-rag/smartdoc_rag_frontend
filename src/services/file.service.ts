@@ -26,7 +26,9 @@ export const fileService = {
 		const res = await api.post(`/file/${conversationId}/upload/`, formData, {
 			headers: { "Content-Type": "multipart/form-data" },
 		});
-		return res.data;
+
+		console.log("File: " + res);
+		return res.data.data.uploaded;
 	},
 
 	// Xóa một file
