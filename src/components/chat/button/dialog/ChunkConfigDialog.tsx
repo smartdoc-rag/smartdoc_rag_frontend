@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import {
 	Dialog,
@@ -23,6 +23,7 @@ interface ChunkConfigDialogProps {
 	initialOverlap?: number;
 	onSave?: (size: number, overlap: number) => void;
 	modal: boolean;
+	isLoading: boolean
 }
 
 export function ChunkConfigDialog({
@@ -32,16 +33,11 @@ export function ChunkConfigDialog({
 	initialOverlap = 200,
 	onSave,
 	modal = true,
+	isLoading
 }: ChunkConfigDialogProps) {
 	const [chunkSize, setChunkSize] = useState(initialSize);
 	const [chunkOverlap, setChunkOverlap] = useState(initialOverlap);
 
-	useEffect(() => {
-		if (open) {
-			setChunkSize(initialSize);
-			setChunkOverlap(initialOverlap);
-		}
-	}, [open, initialSize, initialOverlap]);
 
 	const snapToOptions = (value: number, options: number[]) => {
 		return options.reduce((prev, curr) =>
@@ -62,7 +58,6 @@ export function ChunkConfigDialog({
 	const handleSubmit = (e: React.FormEvent) => {
 		e.preventDefault();
 		onSave?.(chunkSize, chunkOverlap);
-		onOpenChange(false); // Đóng dialog sau khi lưu
 	};
 
 	return (
@@ -86,6 +81,7 @@ export function ChunkConfigDialog({
 									step={500}
 									onValueChange={handleSizeChange}
 									className="flex-1"
+									disabled={isLoading}
 								/>
 								<span className="w-12 text-sm font-medium">{chunkSize}</span>
 							</div>
@@ -104,6 +100,7 @@ export function ChunkConfigDialog({
 									step={50}
 									onValueChange={handleOverlapChange}
 									className="flex-1"
+									disabled={isLoading}
 								/>
 								<span className="w-12 text-sm font-medium">{chunkOverlap}</span>
 							</div>
@@ -115,11 +112,20 @@ export function ChunkConfigDialog({
 					</FieldGroup>
 					<DialogFooter>
 						<DialogClose asChild>
-							<Button variant="outline" type="button">
+							<Button
+								variant="outline"
+								type="button"
+								disabled={isLoading}
+							>
 								Hủy
 							</Button>
 						</DialogClose>
-						<Button type="submit">Lưu thay đổi</Button>
+						<Button
+							type="submit"
+							disabled={isLoading}
+						>
+							Lưu thay đổi
+						</Button>
 					</DialogFooter>
 				</form>
 			</DialogContent>

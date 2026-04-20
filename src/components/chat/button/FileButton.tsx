@@ -18,12 +18,14 @@ import { useRef, useState } from "react";
 import { toast } from "sonner";
 import { ArchiveDialog } from "./dialog/ArchiveDialog";
 import { ChunkConfigDialog } from "./dialog/ChunkConfigDialog";
+import type { Conversation } from "@/types/conversation.type";
+import { useUpdateConvConfig } from "@/hooks/use-conversation";
 
 interface FileButtonProps {
-	conversationId?: number;
+	conversation: Conversation;
 }
 
-export function FileButton({ conversationId }: FileButtonProps) {
+export function FileButton({ conversation }: FileButtonProps) {
 	const fileInputRef = useRef<HTMLInputElement>(null);
 	const [files, setFiles] = useState<File[]>([]);
 	const [isUploading, setIsUploading] = useState(false);
@@ -31,13 +33,22 @@ export function FileButton({ conversationId }: FileButtonProps) {
 	const [archiveOpen, setArchiveOpen] = useState(false);
 
 	const [dialogOpen, setDialogOpen] = useState(false);
-	const [currentSize, setCurrentSize] = useState(1500);
-	const [currentOverlap, setCurrentOverlap] = useState(200);
+
+	const { mutate, isPending: isLoadingConfig } = useUpdateConvConfig()
 
 	const handleSaveConfig = (size: number, overlap: number) => {
-		// Lưu vào state, context, hoặc gọi API
-		setCurrentSize(size);
-		setCurrentOverlap(overlap);
+		mutate({
+			id: conversation.id,
+			chunk_size: size,
+			chunk_overlap: overlap
+		}, {
+			onSuccess: () => {
+				toast.success("Cập nhật config thành công")
+			},
+			onError: () => {
+				toast.error("Cập nhật thất bại")
+			}
+		})
 		console.log("Saved:", { size, overlap });
 	};
 
@@ -62,12 +73,12 @@ export function FileButton({ conversationId }: FileButtonProps) {
 			const formData = new FormData();
 			files.forEach((file) => formData.append("files", file));
 
-			if (!conversationId) {
+			if (!conversation) {
 				console.warn("Chưa có conversationId");
 				return;
 			}
 
-			const res = await fileService.uploadFiles(conversationId, formData);
+			const res = await fileService.uploadFiles(conversation.id, formData);
 			// Upload thành công
 			setFiles([]);
 			setOpen(false);
@@ -197,16 +208,17 @@ export function FileButton({ conversationId }: FileButtonProps) {
 			<ArchiveDialog
 				open={archiveOpen}
 				onOpenChange={setArchiveOpen}
-				conversationId={conversationId!}
+				conversationId={conversation.id}
 			/>
 
 			<ChunkConfigDialog
 				open={dialogOpen}
 				onOpenChange={setDialogOpen}
-				initialSize={currentSize}
-				initialOverlap={currentOverlap}
+				initialSize={conversation.chunk_size}
+				initialOverlap={conversation.chunk_overlap}
 				onSave={handleSaveConfig}
 				modal={true}
+				isLoading={isLoadingConfig}
 			/>
 		</>
 	);

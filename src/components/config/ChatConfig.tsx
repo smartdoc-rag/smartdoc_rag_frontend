@@ -5,29 +5,13 @@ import {
 	PopoverContent,
 	PopoverTrigger,
 } from "@/components/ui/popover";
+import { useConfigStore } from "@/stores/useConfigStore";
 import { Settings2, Check } from "lucide-react";
-import { useState } from "react";
 
-export type ChatConfigType = {
-	mode: "rag" | "graphrag" | "dual";
-	model: string;
-};
 
-interface ChatConfigProps {
-	onConfigChange?: (config: ChatConfigType) => void;
-	initialConfig?: Partial<ChatConfigType>;
-}
+export function ChatConfig() {
 
-export function ChatConfig({ onConfigChange, initialConfig }: ChatConfigProps) {
-	const [mode, setMode] = useState<"rag" | "graphrag" | "dual">(
-		initialConfig?.mode || "rag",
-	);
-	const [model] = useState<string>(initialConfig?.model || "qwen3.5");
-
-	const handleModeChange = (newMode: "rag" | "graphrag" | "dual") => {
-		setMode(newMode);
-		onConfigChange?.({ mode: newMode, model });
-	};
+	const { model, mode, setMode } = useConfigStore()
 
 	return (
 		<Popover>
@@ -42,7 +26,7 @@ export function ChatConfig({ onConfigChange, initialConfig }: ChatConfigProps) {
 					{/* RAG mode */}
 					<div
 						className="flex items-center justify-between cursor-pointer p-1 rounded hover:bg-muted/50"
-						onClick={() => handleModeChange("rag")}
+						onClick={() => setMode("rag")}
 					>
 						<div>
 							<div className="font-medium">RAG mode</div>
@@ -55,7 +39,7 @@ export function ChatConfig({ onConfigChange, initialConfig }: ChatConfigProps) {
 					{/* GraphRAG mode */}
 					<div
 						className="flex items-center justify-between cursor-pointer p-1 rounded hover:bg-muted/50"
-						onClick={() => handleModeChange("graphrag")}
+						onClick={() => setMode("graph")}
 					>
 						<div>
 							<div className="font-medium">GraphRAG mode</div>
@@ -63,12 +47,12 @@ export function ChatConfig({ onConfigChange, initialConfig }: ChatConfigProps) {
 								Graph Retrieval-Augmented Generation
 							</div>
 						</div>
-						{mode === "graphrag" && <Check className="h-4 w-4 text-primary" />}
+						{mode === "graph" && <Check className="h-4 w-4 text-primary" />}
 					</div>
 					{/* Dual mode */}
 					<div
 						className="flex items-center justify-between cursor-pointer p-1 rounded hover:bg-muted/50"
-						onClick={() => handleModeChange("dual")}
+						onClick={() => setMode("dual")}
 					>
 						<div>
 							<div className="font-medium">Dual mode</div>

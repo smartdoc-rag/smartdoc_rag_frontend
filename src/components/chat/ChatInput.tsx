@@ -2,31 +2,23 @@ import { useState, useRef, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { ArrowUp } from "lucide-react";
 import { Card } from "../ui/card";
-import { ChatConfig, type ChatConfigType } from "./button/ChatConfig";
+import { ChatConfig } from "../config/ChatConfig";
 import { ContextUsage } from "./button/ContextUsage";
 import { FileButton } from "./button/FileButton";
+import type { Conversation } from "@/types/conversation.type";
 
 interface ChatModeProps {
 	onSendMessage?: (message: string) => void;
-	conversationId?: number;
+	conversation: Conversation
 }
 
 export default function ChatMode({
 	onSendMessage,
-	conversationId,
+	conversation,
 }: ChatModeProps) {
 	const [query, setQuery] = useState("");
 	const textareaRef = useRef<HTMLTextAreaElement>(null);
-	const [chatConfig, setChatConfig] = useState<ChatConfigType>({
-		mode: "rag",
-		model: "qwen3.5",
-	});
 
-	const handleConfigChange = (newConfig: ChatConfigType) => {
-		setChatConfig(newConfig);
-		// Xử lý thêm: lưu localStorage, gọi API, thay đổi hành vi gửi tin nhắn, v.v.
-		console.log("Config changed:", newConfig);
-	};
 
 	// Auto focus
 	useEffect(() => {
@@ -81,8 +73,8 @@ export default function ChatMode({
 			/>
 			<div className="flex items-center justify-between pb-3">
 				<div className="flex items-center gap-1">
-					<FileButton conversationId={conversationId} />
-					<ChatConfig onConfigChange={handleConfigChange} />
+					<FileButton conversation={conversation} />
+					<ChatConfig />
 					<ContextUsage />
 				</div>
 				<Button
