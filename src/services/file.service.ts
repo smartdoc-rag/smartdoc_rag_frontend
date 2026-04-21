@@ -6,6 +6,7 @@ export interface FileInfo {
 	file_path: string; // đường dẫn file
 	file_size: number;
 	file_type: string;
+	file_uploaded_at: string;
 	scope: string;
 	created_at: string;
 }

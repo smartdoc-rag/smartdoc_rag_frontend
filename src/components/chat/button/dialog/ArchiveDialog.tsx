@@ -11,12 +11,14 @@ import { Search, FileText, Check, Loader2 } from "lucide-react";
 import { useState, useMemo, useEffect } from "react";
 import { toast } from "sonner";
 import { fileService, type FileInfo } from "@/services/file.service";
+import { conversationService } from "@/services/conversation.service";
 
 export interface ArchiveFile {
 	id: number;
 	name: string;
 	type: "pdf" | "docx";
-	scope: string; // 'private' hoặc 'public'
+	scope: string;
+	uploadedAt: string;
 }
 
 interface ArchiveDialogProps {
@@ -25,8 +27,6 @@ interface ArchiveDialogProps {
 	conversationId: number;
 	onConfirm?: (files: ArchiveFile[]) => void;
 }
-
-const STORAGE_KEY = "selected_archive_files";
 
 const getFileType = (fileType: string): "pdf" | "docx" | null => {
 	const lower = fileType.toLowerCase();
@@ -47,69 +47,80 @@ export function ArchiveDialog({
 	const [scopeFilter, setScopeFilter] = useState<"all" | "private" | "public">(
 		"all",
 	);
+	const [dateFrom, setDateFrom] = useState("");
+	const [dateTo, setDateTo] = useState("");
 	const [files, setFiles] = useState<ArchiveFile[]>([]);
 	const [loading, setLoading] = useState(false);
+	const [confirming, setConfirming] = useState(false);
 
-	// Lấy file từ API khi dialog mở
 	useEffect(() => {
-		if (open && conversationId) {
-			const fetchFiles = async () => {
-				setLoading(true);
-				try {
-					const data = await fileService.getFiles(conversationId);
-					const archiveFiles: ArchiveFile[] = data
-						.filter((f: FileInfo) => {
-							const type = getFileType(f.file_type);
-							return type !== null;
-						})
-						.map((f: FileInfo) => ({
-							id: f.id,
-							name: f.file_name,
-							type: getFileType(f.file_type) as "pdf" | "docx",
-							scope: f.scope, // 'private' hoặc 'public'
-						}));
-					setFiles(archiveFiles);
+		if (!open || !conversationId) return;
+
+		const fetchData = async () => {
+			setLoading(true);
+			try {
+				const [data, selectedFileIds] = await Promise.all([
+					fileService.getFiles(conversationId),
+					conversationService.getSelectedFile(conversationId),
+				]);
+
+				const archiveFiles: ArchiveFile[] = data
+					.filter((f: FileInfo) => getFileType(f.file_type) !== null)
+					.map((f: FileInfo) => ({
+						id: f.id,
+						name: f.file_name,
+						type: getFileType(f.file_type) as "pdf" | "docx",
+						scope: f.scope,
+						uploadedAt: f.file_uploaded_at,
+					}));
+
+				setFiles(archiveFiles);
+
+				if (selectedFileIds.length > 0) {
+					setSelectedIds(new Set(selectedFileIds));
+				} else {
 					setSelectedIds(new Set(archiveFiles.map((f) => f.id)));
-				} catch (error) {
-					console.error("Failed to fetch files:", error);
-					toast.error("Không thể tải danh sách file");
-				} finally {
-					setLoading(false);
 				}
-			};
-			fetchFiles();
-		}
+			} catch (error) {
+				console.error("Failed to fetch files:", error);
+				toast.error("Không thể tải danh sách file");
+			} finally {
+				setLoading(false);
+			}
+		};
+
+		fetchData();
 	}, [open, conversationId]);
 
-	// Lọc theo search, type, scope
 	const filtered = useMemo(() => {
 		return files.filter((f) => {
-			// Lọc theo scope (private/public)
 			if (scopeFilter !== "all" && f.scope !== scopeFilter) return false;
 
 			const matchSearch = f.name.toLowerCase().includes(search.toLowerCase());
-			const matchType = typeFilter ? f.type === typeFilter.toLowerCase() : true;
-			return matchSearch && matchType;
+			const matchType = typeFilter ? f.type === typeFilter : true;
+
+			// So sánh ngày an toàn dùng chuỗi YYYY-MM-DD
+			const uploadedDateStr = f.uploadedAt.split("T")[0];
+			const matchFrom = dateFrom ? uploadedDateStr >= dateFrom : true;
+			const matchTo = dateTo ? uploadedDateStr <= dateTo : true;
+
+			return matchSearch && matchType && matchFrom && matchTo;
 		});
-	}, [files, search, typeFilter, scopeFilter]);
+	}, [files, search, typeFilter, scopeFilter, dateFrom, dateTo]);
 
 	const allSelected =
 		filtered.length > 0 && filtered.every((f) => selectedIds.has(f.id));
 
 	const toggleAll = () => {
-		if (allSelected) {
-			setSelectedIds((prev) => {
-				const next = new Set(prev);
+		setSelectedIds((prev) => {
+			const next = new Set(prev);
+			if (allSelected) {
 				filtered.forEach((f) => next.delete(f.id));
-				return next;
-			});
-		} else {
-			setSelectedIds((prev) => {
-				const next = new Set(prev);
+			} else {
 				filtered.forEach((f) => next.add(f.id));
-				return next;
-			});
-		}
+			}
+			return next;
+		});
 	};
 
 	const toggleFile = (id: number) => {
@@ -120,12 +131,24 @@ export function ArchiveDialog({
 		});
 	};
 
-	const handleConfirm = () => {
-		const selected = files.filter((f) => selectedIds.has(f.id));
-		onConfirm?.(selected);
-		localStorage.setItem(STORAGE_KEY, JSON.stringify(selected));
-		onOpenChange(false);
-		toast.success(`Đã lưu ${selected.length} file vào kho lưu trữ tạm`);
+	const handleConfirm = async () => {
+		setConfirming(true);
+		try {
+			const selectedFileIds = Array.from(selectedIds);
+			await conversationService.setSelectedFile(
+				conversationId,
+				selectedFileIds,
+			);
+			const selected = files.filter((f) => selectedIds.has(f.id));
+			onConfirm?.(selected);
+			onOpenChange(false);
+			toast.success(`Đã lưu ${selected.length} file`);
+		} catch (error) {
+			console.error("Failed to save selected files:", error);
+			toast.error("Không thể lưu danh sách file");
+		} finally {
+			setConfirming(false);
+		}
 	};
 
 	return (
@@ -143,7 +166,7 @@ export function ArchiveDialog({
 					</div>
 				) : (
 					<>
-						<div className="px-6 space-y-4">
+						<div className="px-6 space-y-3 pt-2">
 							{/* Search + Type filter */}
 							<div className="flex flex-col sm:flex-row gap-3">
 								<div className="relative flex-1">
@@ -160,18 +183,55 @@ export function ArchiveDialog({
 										<Button
 											key={t}
 											variant={
-												typeFilter === (t === "PDF" ? "pdf" : "docx")
-													? "default"
-													: "outline"
+												typeFilter === t.toLowerCase() ? "default" : "outline"
 											}
 											onClick={() => {
-												const newType = t === "PDF" ? "pdf" : "docx";
+												const newType = t.toLowerCase();
 												setTypeFilter(typeFilter === newType ? null : newType);
 											}}
 										>
 											{t}
 										</Button>
 									))}
+								</div>
+							</div>
+
+							{/* Date range filter - FIXED LAYOUT */}
+							<div className="space-y-2">
+								<div className="grid grid-cols-1 sm:grid-cols-[auto,1fr,auto,1fr,auto] items-center gap-2">
+									<span className="text-sm text-muted-foreground whitespace-nowrap">
+										Từ ngày:
+									</span>
+									<Input
+										type="date"
+										className="w-full"
+										value={dateFrom}
+										max={dateTo || undefined}
+										onChange={(e) => setDateFrom(e.target.value)}
+									/>
+									<span className="text-sm text-muted-foreground whitespace-nowrap">
+										Đến ngày:
+									</span>
+									<Input
+										type="date"
+										className="w-full"
+										value={dateTo}
+										min={dateFrom || undefined}
+										onChange={(e) => setDateTo(e.target.value)}
+									/>
+									{(dateFrom || dateTo) && (
+										<Button
+											variant="ghost"
+											size="sm"
+											className="shrink-0"
+											onClick={() => {
+												setDateFrom("");
+												setDateTo("");
+											}}
+										>
+											Xóa
+										</Button>
+									)}
 								</div>
 							</div>
 
@@ -212,7 +272,7 @@ export function ArchiveDialog({
 						</div>
 
 						{/* Danh sách file */}
-						<div className="px-6 max-h-80 overflow-y-auto space-y-2 py-3">
+						<div className="px-6 max-h-72 overflow-y-auto space-y-2 py-3">
 							{filtered.map((file) => (
 								<div
 									key={file.id}
@@ -226,7 +286,8 @@ export function ArchiveDialog({
 										<p className="text-sm font-medium truncate">{file.name}</p>
 										<p className="text-xs text-muted-foreground">
 											{file.type.toUpperCase()} •{" "}
-											{file.scope === "private" ? "Riêng tư" : "Công khai"}
+											{file.scope === "private" ? "Riêng tư" : "Công khai"} •{" "}
+											{new Date(file.uploadedAt).toLocaleDateString("vi-VN")}
 										</p>
 									</div>
 									{selectedIds.has(file.id) && (
@@ -236,7 +297,7 @@ export function ArchiveDialog({
 									)}
 								</div>
 							))}
-							{filtered.length === 0 && !loading && (
+							{filtered.length === 0 && (
 								<p className="text-center text-sm text-muted-foreground py-8">
 									Không tìm thấy file nào
 								</p>
@@ -247,9 +308,12 @@ export function ArchiveDialog({
 						<div className="px-6 py-5 border-t">
 							<Button
 								className="w-full rounded-full"
-								disabled={selectedIds.size === 0}
+								disabled={selectedIds.size === 0 || confirming}
 								onClick={handleConfirm}
 							>
+								{confirming && (
+									<Loader2 className="h-4 w-4 animate-spin mr-2" />
+								)}
 								Xác nhận
 							</Button>
 						</div>
