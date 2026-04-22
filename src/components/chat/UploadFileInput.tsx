@@ -6,7 +6,7 @@ import { Input } from "../ui/input";
 import { ScrollArea } from "../ui/scroll-area";
 import FileUploadCard from "./FileUploadCard";
 import { fileService } from "@/services/file.service";
-import { useCreateConv, useDeleteConv, useGetConversations } from "@/hooks/use-conversation";
+import { useCreateConv, useDeleteConv } from "@/hooks/use-conversation";
 import { toast } from "sonner";
 import { useNavigate } from "react-router";
 
@@ -16,7 +16,6 @@ export default function FileUploadInput() {
     const fileInputRef = useRef<HTMLInputElement>(null);
 
     const { mutateAsync } = useCreateConv()
-    const { data: conversations } = useGetConversations()
     const { mutate: deleteConv } = useDeleteConv()
 
     const navigate = useNavigate()
@@ -40,7 +39,8 @@ export default function FileUploadInput() {
         try {
             setIsUploading(true);
 
-            const title = `Đoạn chat ${conversations ? conversations.length + 1 : 'mới'}`
+            const now = new Date();
+            const title = `Đoạn chat mới - ${now.toLocaleString('vi-VN')}`;
             const newConv = await mutateAsync(title)
 
             if (!newConv) {

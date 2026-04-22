@@ -42,12 +42,18 @@ export default function UserLayout() {
 
 	return (
 		<SidebarProvider>
-			<AppSidebar />
-			<div>
-				<SidebarTrigger className="absolute z-10" size="lg" />
-			</div>
-			<div className="flex h-screen w-full items-center justify-center">
-				<Outlet />
+			<div className="flex h-screen w-full">
+				{/* Sidebar */}
+				<AppSidebar />
+
+				{/* Main content */}
+				<div className="flex-1 relative">
+					{/* Trigger */}
+					<SidebarTrigger className="absolute top-2 left-2 z-10" size="lg" />
+
+					{/* Page */}
+					<Outlet />
+				</div>
 			</div>
 		</SidebarProvider>
 	);

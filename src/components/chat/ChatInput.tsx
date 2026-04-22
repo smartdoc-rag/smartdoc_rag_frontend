@@ -25,7 +25,6 @@ export default function ChatMode({
 		textareaRef.current?.focus();
 	}, []);
 
-	// Auto resize textarea
 	const handleInput = () => {
 		const el = textareaRef.current;
 		if (!el) return;
@@ -71,7 +70,7 @@ export default function ChatMode({
                 "
 				rows={1}
 			/>
-			<div className="flex items-center justify-between pb-3">
+			<div className="flex items-center justify-between">
 				<div className="flex items-center gap-1">
 					<FileButton conversation={conversation} />
 					<ChatConfig />

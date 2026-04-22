@@ -1,3 +1,5 @@
+import type { Pagination } from "./common/pagination.type"
+
 export type Conversation = {
     id: number,
     title: string,
@@ -8,3 +10,8 @@ export type Conversation = {
 }
 
 export type ConversationConfigParam = Pick<Conversation, 'id' | 'chunk_overlap' | 'chunk_size'>
+
+export type ConversationList = {
+    items: Conversation[],
+    pagination: Pagination
+}
