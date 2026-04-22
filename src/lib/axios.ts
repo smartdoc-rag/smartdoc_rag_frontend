@@ -35,18 +35,17 @@ api.interceptors.response.use(
       return Promise.reject(error);
     }
 
-    if (error.response?.status === 401 && !originalRequest._retry) {
+    if (error.response?.status === 401 || error.response?.status === 403 && !originalRequest._retry) {
       originalRequest._retry = true;
 
       try {
-        const res = await api.post("/auth/refresh");
-        const newAccessToken = res.data.accessToken;
+        const res = await api.post("/auth/reset-token");
+        const newAccessToken = res.data.access_token;
 
         useAuthStore.getState().setAccessToken(newAccessToken);
 
         originalRequest.headers.Authorization = `Bearer ${newAccessToken}`;
 
-        //  QUAN TRỌNG: gọi lại request cũ
         return api(originalRequest);
       } catch (refreshError) {
         useAuthStore.getState().clearState();

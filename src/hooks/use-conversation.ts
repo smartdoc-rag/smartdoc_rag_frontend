@@ -1,31 +1,42 @@
 import { conversationService } from "@/services/conversation.service";
 import { useAuthStore } from "@/stores/useAuthStore";
-import type { Conversation, ConversationConfigParam } from "@/types/conversation.type";
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-
+import type { Conversation, ConversationConfigParam, ConversationList } from "@/types/conversation.type";
+import { useInfiniteQuery, useMutation, useQuery, useQueryClient, type InfiniteData } from "@tanstack/react-query";
+import { convLimit } from "@/constants/const";
 
 const conversationKeys = {
-  all: ["conversations"] as const,
-  list: (userId?: string) => ["conversations", userId] as const,
+	all: ["conversations"] as const,
+	list: (userId?: string) => ["conversations", userId] as const,
 };
 
 
 export const useGetConversations = () => {
 	const { user } = useAuthStore();
-	const queryKey = conversationKeys.list(user?.id)
 
-	return useQuery({
-		queryKey,
-		queryFn: () => conversationService.getAllConversations(),
+	return useInfiniteQuery({
+		queryKey: ["conversations", user?.id],
+
+		queryFn: ({ pageParam = 1 }) =>
+			conversationService.getAllConversations({
+				page: pageParam,
+				limit: convLimit,
+			}),
+
+		getNextPageParam: (lastRes) =>
+			lastRes.pagination.has_next
+				? lastRes.pagination.next_page ?? undefined
+				: undefined,
+
+		initialPageParam: 1,
+
 		enabled: !!user,
+
 		refetchOnWindowFocus: false,
-		select: (data) => {
-			return [...(data ?? [])].sort(
-				(a, b) =>
-				new Date(b.last_chat_at).getTime() -
-				new Date(a.last_chat_at).getTime()
-			);
-		}
+
+		staleTime: 1000 * 60 * 5, 
+		gcTime: 1000 * 60 * 30,  
+
+		placeholderData: (prev) => prev,
 	});
 };
 
@@ -39,30 +50,46 @@ export const useCreateConv = () => {
 		mutationFn: (title: string) =>
 			conversationService.createConversation(title),
 
-		onMutate: async(title) => {
-			await queryClient.cancelQueries({queryKey })
+		onMutate: async (title: string) => {
+			await queryClient.cancelQueries({ queryKey });
 
-			const prev = queryClient.getQueryData(queryKey) as Conversation[];
+			const prev = queryClient.getQueryData<InfiniteData<ConversationList>>(queryKey);
 
 			const fakeConv: Conversation = {
 				id: Date.now(),
 				created_at: new Date(),
 				last_chat_at: new Date(),
-				title: title,
+				title,
 				chunk_size: 1500,
-				chunk_overlap: 100
-			}
+				chunk_overlap: 100,
+			};
 
-			queryClient.setQueryData(
+			queryClient.setQueryData<InfiniteData<ConversationList>>(
 				queryKey,
-				(old: Conversation[]) => [...old, fakeConv]
-			)
+				(old) => {
+					if (!old) return old;
 
-			return {prev}
+					return {
+						...old,
+						pages: old.pages.map((page, index) =>
+							index === 0
+								? {
+										...page,
+										items: [fakeConv, ...page.items],
+								}
+								: page
+						),
+					};
+				}
+			);
+
+			return { prev };
 		},
 
 		onError: (_err, _vars, context) => {
-			queryClient.setQueryData(queryKey, context?.prev);
+			if (context?.prev) {
+				queryClient.setQueryData(queryKey, context.prev);
+			}
 		},
 
 		onSettled: () => {
@@ -73,79 +100,97 @@ export const useCreateConv = () => {
 
 export const useUpdateConvTitle = () => {
 	const { user } = useAuthStore();
-
 	const queryClient = useQueryClient();
-	const queryKey = conversationKeys.list(user?.id)
+	const queryKey = conversationKeys.list(user?.id);
 
 	return useMutation({
 		mutationFn: (param: { convId: number; newTitle: string }) =>
 			conversationService.updateConversationTitle(param),
 
-		onMutate: async (param: { convId: number; newTitle: string }) => {
-			const {convId, newTitle} = param;
-			
-			await queryClient.cancelQueries({queryKey})
+		onMutate: async ({ convId, newTitle }) => {
+			await queryClient.cancelQueries({ queryKey });
 
-			const prev = queryClient.getQueryData(queryKey) as Conversation[]
+			const prev =
+				queryClient.getQueryData<InfiniteData<ConversationList>>(queryKey);
 
-			const target= prev.find(conv => conv.id === convId)
+			queryClient.setQueryData<InfiniteData<ConversationList>>(
+				queryKey,
+				(old) => {
+					if (!old) return old;
 
-			if(!target) return {prev};
-
-			const updatedConv = {
-				...target,
-				title: newTitle
-			}
-
-			const updated = prev.map(c =>
-				c.id === convId ? updatedConv : c
+					return {
+						...old,
+						pages: old.pages.map((page) => ({
+							...page,
+							items: page.items.map((conv) =>
+								conv.id === convId
+									? { ...conv, title: newTitle }
+									: conv
+							),
+						})),
+					};
+				}
 			);
-
-			queryClient.setQueryData(queryKey, updated);
 
 			return { prev };
 		},
 
 		onError: (_err, _vars, context) => {
-			queryClient.setQueryData(queryKey, context?.prev);
+			if (context?.prev) {
+				queryClient.setQueryData(queryKey, context.prev);
+			}
 		},
 
 		onSettled: () => {
-				queryClient.invalidateQueries({ queryKey });
-			}
+			queryClient.invalidateQueries({ queryKey });
+		},
 	});
 };
 
 export const useDeleteConv = () => {
 	const { user } = useAuthStore();
-
 	const queryClient = useQueryClient();
-	const queryKey = conversationKeys.list(user?.id)
+	const queryKey = conversationKeys.list(user?.id);
 
 	return useMutation({
 		mutationFn: (convId: number) =>
 			conversationService.deleteConversation(convId),
 
-
 		onMutate: async (convId) => {
-				await queryClient.cancelQueries({ queryKey });
+			await queryClient.cancelQueries({ queryKey });
 
-				const prev = queryClient.getQueryData(queryKey);
+			const prev =
+				queryClient.getQueryData<InfiniteData<ConversationList>>(queryKey);
 
-				queryClient.setQueryData(conversationKeys.list(user?.id), (old: Conversation[]) =>
-					old?.filter(c => c.id !== convId)
-				);
+			queryClient.setQueryData<InfiniteData<ConversationList>>(
+				queryKey,
+				(old) => {
+					if (!old) return old;
 
-				return { prev };
-			},
+					return {
+						...old,
+						pages: old.pages.map((page) => ({
+							...page,
+							items: page.items.filter(
+								(conv) => conv.id !== convId
+							),
+						})),
+					};
+				}
+			);
 
-			onError: (_err, _vars, context) => {
-				queryClient.setQueryData(queryKey, context?.prev);
-			},
+			return { prev };
+		},
 
-			onSettled: () => {
-				queryClient.invalidateQueries({ queryKey });
+		onError: (_err, _vars, context) => {
+			if (context?.prev) {
+				queryClient.setQueryData(queryKey, context.prev);
 			}
+		},
+
+		onSettled: () => {
+			queryClient.invalidateQueries({ queryKey });
+		},
 	});
 };
 
