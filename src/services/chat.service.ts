@@ -27,7 +27,7 @@ export const chatService = {
     },
 
     getHistory: async(convId?: number) => {
-        const res = await api.get<ApiResponse<{history: HistoryMessage[]}>> (`/chat/${convId}/history`)
+        const res = await api.get<ApiResponse<{history: HistoryMessage[]}>> (`/chat/${convId}/history?page_size=100`)
         const {message, data, success, error} = res.data
 
         if (error || !success || !data) {

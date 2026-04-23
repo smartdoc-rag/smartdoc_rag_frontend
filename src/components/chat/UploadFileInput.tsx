@@ -5,10 +5,10 @@ import { Card } from "../ui/card";
 import { Input } from "../ui/input";
 import { ScrollArea } from "../ui/scroll-area";
 import FileUploadCard from "./FileUploadCard";
-import { fileService } from "@/services/file.service";
 import { useCreateConv, useDeleteConv } from "@/hooks/use-conversation";
 import { toast } from "sonner";
 import { useNavigate } from "react-router";
+import { useUploadFile } from "@/hooks/use-file";
 
 export default function FileUploadInput() {
     const [files, setFiles] = useState<File[]>([]);
@@ -17,6 +17,7 @@ export default function FileUploadInput() {
 
     const { mutateAsync } = useCreateConv()
     const { mutate: deleteConv } = useDeleteConv()
+    const uploadFile = useUploadFile()
 
     const navigate = useNavigate()
 
@@ -53,15 +54,17 @@ export default function FileUploadInput() {
                 formData.append("files", file);
             });
 
-            console.log(newConv)
-            try {
-                await fileService.uploadFiles(newConv.id, formData)
-                navigate(`/c/${newConv.id}`)
-            } catch (err) {
-                console.error(err)
-                deleteConv(newConv.id)
-                toast.error('Lỗi')
-            }
+            uploadFile.mutate({ conversationId: newConv.id, formData, }, {
+                onSuccess: () => {
+                    toast.success("Upload file thành công")
+                    navigate(`/c/${newConv.id}`)
+                },
+                onError: () => {
+                    deleteConv(newConv.id)
+                    toast.error('Lỗi')
+                }
+            })
+
 
         } catch (err) {
             console.error(err)

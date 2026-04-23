@@ -45,8 +45,13 @@ export type AskParams = {
 }
 
 export type HistoryMessage = {
-    request_id: number,
-    question: string,
-    answer: string,
-    created_at: Date
+  request_id: number
+  tempId?: string
+
+  question: string
+  answer: string
+
+  created_at: string
+
+  pending?: boolean
 }
