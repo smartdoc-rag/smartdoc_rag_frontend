@@ -1,6 +1,6 @@
 import { conversationService } from "@/services/conversation.service";
 import { useAuthStore } from "@/stores/useAuthStore";
-import type { Conversation, ConversationConfigParam, ConversationList } from "@/types/conversation.type";
+import type { ConversationConfigParam, ConversationList } from "@/types/conversation.type";
 import { useInfiniteQuery, useMutation, useQuery, useQueryClient, type InfiniteData } from "@tanstack/react-query";
 import { convLimit } from "@/constants/const";
 
@@ -42,59 +42,9 @@ export const useGetConversations = () => {
 
 
 export const useCreateConv = () => {
-	const {user} = useAuthStore();
-	const queryKey = conversationKeys.list(user?.id)
-	const queryClient = useQueryClient();
-
 	return useMutation({
 		mutationFn: (title: string) =>
 			conversationService.createConversation(title),
-
-		onMutate: async (title: string) => {
-			await queryClient.cancelQueries({ queryKey });
-
-			const prev = queryClient.getQueryData<InfiniteData<ConversationList>>(queryKey);
-
-			const fakeConv: Conversation = {
-				id: Date.now(),
-				created_at: new Date(),
-				last_chat_at: new Date(),
-				title,
-				chunk_size: 1500,
-				chunk_overlap: 100,
-			};
-
-			queryClient.setQueryData<InfiniteData<ConversationList>>(
-				queryKey,
-				(old) => {
-					if (!old) return old;
-
-					return {
-						...old,
-						pages: old.pages.map((page, index) =>
-							index === 0
-								? {
-										...page,
-										items: [fakeConv, ...page.items],
-								}
-								: page
-						),
-					};
-				}
-			);
-
-			return { prev };
-		},
-
-		onError: (_err, _vars, context) => {
-			if (context?.prev) {
-				queryClient.setQueryData(queryKey, context.prev);
-			}
-		},
-
-		onSettled: () => {
-			queryClient.invalidateQueries({ queryKey });
-		}
 	})
 }
 

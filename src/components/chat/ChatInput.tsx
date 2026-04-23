@@ -6,9 +6,11 @@ import { ChatConfig } from "../config/ChatConfig";
 import { ContextUsage } from "./button/ContextUsage";
 import { FileButton } from "./button/FileButton";
 import type { Conversation } from "@/types/conversation.type";
+import { useConfigStore } from "@/stores/useConfigStore";
+import type { AskParams } from "@/types/chat.type";
 
 interface ChatModeProps {
-	onSendMessage?: (message: string) => void;
+	onSendMessage: (param: AskParams) => void;
 	conversation: Conversation
 }
 
@@ -18,6 +20,8 @@ export default function ChatMode({
 }: ChatModeProps) {
 	const [query, setQuery] = useState("");
 	const textareaRef = useRef<HTMLTextAreaElement>(null);
+
+	const { mode, searchConfig } = useConfigStore()
 
 
 	// Auto focus
@@ -35,8 +39,17 @@ export default function ChatMode({
 	const handleSend = () => {
 		if (!query.trim()) return;
 
-		onSendMessage?.(query);
-		console.log("Send query:", query);
+		const param: AskParams = {
+			convId: conversation.id,
+			isRerank: searchConfig.includes('rerank'),
+			isSelfRag: searchConfig.includes('self-rag'),
+			searchType: searchConfig.includes('hybrid') ? 'hybrid' : 'vector',
+			responseType: mode,
+			question: query,
+			selectedFiles: [],
+		}
+
+		onSendMessage(param)
 		setQuery("");
 
 		if (textareaRef.current) {

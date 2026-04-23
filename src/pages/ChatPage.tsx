@@ -2,10 +2,10 @@ import ChatMode from "@/components/chat/ChatInput";
 import ChatBoard from "@/components/chat/ChatBoard";
 import { useGetConvById } from "@/hooks/use-conversation";
 import { useParams } from "react-router";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef } from "react";
 import { useSidebar } from "@/components/ui/sidebar";
-import { chatService } from "@/services/chat.service";
-import type { HistoryMessage } from "@/types/chat.type";
+import { useAsk, useGetHistory } from "@/hooks/use-chat";
+import type { AskParams } from "@/types/chat.type";
 
 export default function ChatPage() {
 	const { id } = useParams<{ id: string }>();
@@ -15,35 +15,12 @@ export default function ChatPage() {
 	const messagesEndRef = useRef<HTMLDivElement>(null);
 	const { open } = useSidebar();
 
-	const [messages, setMessages] = useState<HistoryMessage[]>([])
-
-	useEffect(() => {
-		if (!conversation?.id) return;
-
-		const fetchHistory = async () => {
-			try {
-				const res = await chatService.getHistory(conversation.id);
-
-				if (res) {
-					setMessages(
-						res.sort(
-							(a, b) =>
-								new Date(a.created_at).getTime() -
-								new Date(b.created_at).getTime()
-						)
-					);
-				}
-			} catch (err) {
-				console.error(err);
-			}
-		};
-
-		fetchHistory();
-	}, [conversation?.id]);
+	const { data: messages } = useGetHistory(convId)
+	const { mutate } = useAsk(convId)
 
 	useEffect(() => {
 		messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
-	}, [messages]);
+	}, []);
 
 	if (!conversation || !messages) return null;
 
@@ -70,7 +47,10 @@ export default function ChatPage() {
 			`}
 			>
 				<div className="max-w-4xl mx-auto w-full px-4 py-4">
-					<ChatMode conversation={conversation} />
+					<ChatMode
+						conversation={conversation}
+						onSendMessage={(param: AskParams) => mutate(param)}
+					/>
 				</div>
 			</div>
 		</div>
