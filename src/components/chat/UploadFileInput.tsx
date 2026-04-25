@@ -54,7 +54,7 @@ export default function FileUploadInput() {
                 formData.append("files", file);
             });
 
-            uploadFile.mutate({ conversationId: newConv.id, formData, }, {
+            await uploadFile.mutateAsync({ conversationId: newConv.id, formData, }, {
                 onSuccess: () => {
                     toast.success("Upload file thành công")
                     navigate(`/c/${newConv.id}`)
