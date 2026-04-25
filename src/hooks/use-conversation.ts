@@ -1,8 +1,9 @@
 import { conversationService } from "@/services/conversation.service";
 import { useAuthStore } from "@/stores/useAuthStore";
-import type { ConversationConfigParam, ConversationList } from "@/types/conversation.type";
+import type { Conversation, ConversationConfigParam } from "@/types/conversation.type";
 import { useInfiniteQuery, useMutation, useQuery, useQueryClient, type InfiniteData } from "@tanstack/react-query";
 import { convLimit } from "@/constants/const";
+import type { CursorResponse } from "@/types/common/pagination.type";
 
 const conversationKeys = {
 	all: ["conversations"] as const,
@@ -13,30 +14,29 @@ const conversationKeys = {
 export const useGetConversations = () => {
 	const { user } = useAuthStore();
 
-	return useInfiniteQuery({
-		queryKey: ["conversations", user?.id],
+	return useInfiniteQuery<
+		CursorResponse<Conversation>, // dữ liệu mỗi page
+		Error,                        // error
+		CursorResponse<Conversation>, // select (giữ nguyên)
+		ReturnType<typeof conversationKeys.list>, // queryKey type
+		string | null                
+	>({
+		queryKey: conversationKeys.list(user?.id),
 
-		queryFn: ({ pageParam = 1 }) =>
+		queryFn: ({ pageParam }) =>
 			conversationService.getAllConversations({
-				page: pageParam,
+				cursor: pageParam,
 				limit: convLimit,
 			}),
 
-		getNextPageParam: (lastRes) =>
-			lastRes.pagination.has_next
-				? lastRes.pagination.next_page ?? undefined
+		getNextPageParam: (lastPage) =>
+			lastPage.meta.has_next
+				? lastPage.meta.next_cursor
 				: undefined,
 
-		initialPageParam: 1,
+		initialPageParam: null,
 
 		enabled: !!user,
-
-		refetchOnWindowFocus: false,
-
-		staleTime: 1000 * 60 * 5, 
-		gcTime: 1000 * 60 * 30,  
-
-		placeholderData: (prev) => prev,
 	});
 };
 
@@ -61,9 +61,9 @@ export const useUpdateConvTitle = () => {
 			await queryClient.cancelQueries({ queryKey });
 
 			const prev =
-				queryClient.getQueryData<InfiniteData<ConversationList>>(queryKey);
+				queryClient.getQueryData<InfiniteData<CursorResponse<Conversation>>>(queryKey);
 
-			queryClient.setQueryData<InfiniteData<ConversationList>>(
+			queryClient.setQueryData<InfiniteData<CursorResponse<Conversation>>>(
 				queryKey,
 				(old) => {
 					if (!old) return old;
@@ -110,9 +110,9 @@ export const useDeleteConv = () => {
 			await queryClient.cancelQueries({ queryKey });
 
 			const prev =
-				queryClient.getQueryData<InfiniteData<ConversationList>>(queryKey);
+				queryClient.getQueryData<InfiniteData<CursorResponse<Conversation>>>(queryKey);
 
-			queryClient.setQueryData<InfiniteData<ConversationList>>(
+			queryClient.setQueryData<InfiniteData<CursorResponse<Conversation>>>(
 				queryKey,
 				(old) => {
 					if (!old) return old;
@@ -173,3 +173,81 @@ export const useUpdateConvConfig = () => {
 		}
 	})
 }
+
+export const useUpdateLastChat = () => {
+	const { user } = useAuthStore();
+	const queryClient = useQueryClient();
+	const queryKey = conversationKeys.list(user?.id);
+
+	return useMutation({
+		mutationFn: (convId: number) =>
+			conversationService.updateLastChat(convId),
+
+		onMutate: async (convId) => {
+			await queryClient.cancelQueries({ queryKey });
+
+			const prev =
+				queryClient.getQueryData<
+					InfiniteData<CursorResponse<Conversation>>
+				>(queryKey);
+
+			queryClient.setQueryData<
+				InfiniteData<CursorResponse<Conversation>>
+			>(queryKey, (old) => {
+				if (!old) return old;
+
+				let movedConv: Conversation | null = null;
+
+				const newPages = [...old.pages];
+
+				for (let i = 0; i < newPages.length; i++) {
+					const page = newPages[i];
+					const idx = page.items.findIndex((c) => c.id === convId);
+
+					if (idx !== -1) {
+						movedConv = page.items[idx];
+
+						const newItems = [...page.items];
+						newItems.splice(idx, 1);
+
+						newPages[i] = {
+							...page,
+							items: newItems,
+						};
+
+						break; 
+					}
+				}
+
+				if (!movedConv) return old;
+
+				const updatedConv: Conversation = {
+					...movedConv,
+					last_chat_at: new Date(),
+				};
+
+				newPages[0] = {
+					...newPages[0],
+					items: [updatedConv, ...newPages[0].items],
+				};
+
+				return {
+					...old,
+					pages: newPages,
+				};
+			});
+
+			return { prev };
+		},
+
+		onError: (_err, _vars, context) => {
+			if (context?.prev) {
+				queryClient.setQueryData(queryKey, context.prev);
+			}
+		},
+
+		onSettled: () => {
+			queryClient.invalidateQueries({ queryKey });
+		},
+	});
+};

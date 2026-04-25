@@ -1,1 +1,1 @@
-export const convLimit = 8
+export const convLimit = 10

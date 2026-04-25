@@ -8,6 +8,7 @@ import { FileButton } from "./button/FileButton";
 import type { Conversation } from "@/types/conversation.type";
 import { useConfigStore } from "@/stores/useConfigStore";
 import type { AskParams } from "@/types/chat.type";
+import { useUpdateLastChat } from "@/hooks/use-conversation";
 
 interface ChatModeProps {
 	onSendMessage: (param: AskParams) => void;
@@ -20,7 +21,7 @@ export default function ChatMode({
 }: ChatModeProps) {
 	const [query, setQuery] = useState("");
 	const textareaRef = useRef<HTMLTextAreaElement>(null);
-
+	const { mutate } = useUpdateLastChat()
 	const { mode, searchConfig } = useConfigStore()
 
 
@@ -60,6 +61,7 @@ export default function ChatMode({
 	const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
 		if (e.key === "Enter" && !e.shiftKey) {
 			e.preventDefault();
+			mutate(conversation.id)
 			handleSend();
 		}
 	};

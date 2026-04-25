@@ -1,10 +1,9 @@
 import api from "@/lib/axios";
-import type { PaginationParams } from "@/types/common/pagination.type";
+import type { CursorPaginationParams, CursorResponse } from "@/types/common/pagination.type";
 import type { ApiResponse } from "@/types/common/response.type";
 import type {
 	Conversation,
 	ConversationConfigParam,
-	ConversationList,
 } from "@/types/conversation.type";
 
 export const conversationService = {
@@ -25,27 +24,26 @@ export const conversationService = {
 		return data;
 	},
 
-	getAllConversations: async (param: PaginationParams): Promise<ConversationList> => {
-		const {limit, page} = param
+	getAllConversations: async (
+		param: CursorPaginationParams
+		): Promise<CursorResponse<Conversation>> => {
+		const { limit, cursor } = param;
 		const params = new URLSearchParams();
 
-	    params.append("page", page.toString());
-    	params.append("page_size", limit.toString());
+		if (cursor) params.append("cursor", cursor);
+		params.append("limit", limit.toString());
 
-		try {
-			const res = await api.get<ApiResponse<ConversationList>>(`/conversation?${params.toString()}`);
+		const res = await api.get<
+			ApiResponse<CursorResponse<Conversation>>
+		>(`/conversation?${params.toString()}`);
 
-			const {error, data, success, message} = res.data
+		const { data, success, error, message } = res.data;
 
-			 if (!success || !data) {
-            throw new Error(error || message || "Đăng ký thất bại");
-        }
-
-			return data;
-		} catch (error) {
-			console.error(error);
-			throw new Error("Lỗi khi tạo đoạn chat mới");
+		if (!success || !data) {
+			throw new Error(error || message || "Fetch failed");
 		}
+
+		return data
 	},
 
 	updateConversationTitle: async ({
