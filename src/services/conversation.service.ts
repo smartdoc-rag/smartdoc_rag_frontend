@@ -9,7 +9,7 @@ import type {
 export const conversationService = {
 	createConversation: async (title: string): Promise<Conversation> => {
 		const res = await api.post<ApiResponse<Conversation>>(
-			"/conversation/create",
+			"/conversation/create/",
 			{
 				title,
 			},
@@ -26,7 +26,7 @@ export const conversationService = {
 
 	getAllConversations: async (
 		param: CursorPaginationParams
-		): Promise<CursorResponse<Conversation>> => {
+	): Promise<CursorResponse<Conversation>> => {
 		const { limit, cursor } = param;
 		const params = new URLSearchParams();
 

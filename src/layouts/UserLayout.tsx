@@ -1,9 +1,21 @@
 import { AppSidebar } from "@/components/common/AppSideBar";
-import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
+import { SidebarProvider, SidebarTrigger, useSidebar } from "@/components/ui/sidebar";
 import { useAuthStore } from "@/stores/useAuthStore";
 import { useEffect, useRef, useState } from "react";
 
 import { Outlet, useNavigate } from "react-router";
+
+function SidebarToggle() {
+	const { open } = useSidebar();
+
+	return (
+		<SidebarTrigger
+			className={`fixed top-2 z-50 transition-all duration-300 ${open ? "left-[336px]" : "left-5"
+				}`}
+			size="lg"
+		/>
+	);
+}
 
 export default function UserLayout() {
 	const { accessToken, user, loading, refresh, getUser } = useAuthStore();
@@ -49,7 +61,7 @@ export default function UserLayout() {
 				{/* Main content */}
 				<div className="flex-1 relative">
 					{/* Trigger */}
-					<SidebarTrigger className="absolute top-2 left-2 z-10" size="lg" />
+					<SidebarToggle />
 
 					{/* Page */}
 					<Outlet />
