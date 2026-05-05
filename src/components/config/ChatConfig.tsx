@@ -39,7 +39,7 @@ export function ChatConfig() {
 					{/* GraphRAG mode */}
 					<div
 						className="flex items-center justify-between cursor-pointer p-1 rounded hover:bg-muted/50"
-						onClick={() => setMode("graph")}
+						onClick={() => setMode("graph_rag")}
 					>
 						<div>
 							<div className="font-medium">GraphRAG mode</div>
@@ -47,7 +47,7 @@ export function ChatConfig() {
 								Graph Retrieval-Augmented Generation
 							</div>
 						</div>
-						{mode === "graph" && <Check className="h-4 w-4 text-primary" />}
+						{mode === "graph_rag" && <Check className="h-4 w-4 text-primary" />}
 					</div>
 					{/* Dual mode */}
 					<div

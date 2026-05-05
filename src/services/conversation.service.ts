@@ -9,7 +9,7 @@ import type {
 export const conversationService = {
 	createConversation: async (title: string): Promise<Conversation> => {
 		const res = await api.post<ApiResponse<Conversation>>(
-			"/conversation/create",
+			"/conversation/create/",
 			{
 				title,
 			},

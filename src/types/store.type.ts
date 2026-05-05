@@ -28,11 +28,11 @@ export interface AuthStoreType {
 
 export interface ConfigStoreType {
   searchConfig: string[],
-  mode: 'rag' | 'graph' | 'dual',
+  mode: 'rag' | 'graph_rag' | 'dual',
   loading: boolean,
   model: string,
 
-  setMode: (mode: 'rag' | 'graph' | 'dual' ) => void,
+  setMode: (mode: 'rag' | 'graph_rag' | 'dual' ) => void,
 
   setSearchConfig: (config: string[]) => void,
 

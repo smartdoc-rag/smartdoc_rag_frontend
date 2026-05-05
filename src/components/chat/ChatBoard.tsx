@@ -5,12 +5,12 @@ import { Thinking } from "./Thinking";
 import { EmptyChat } from "./EmptyChat";
 
 type Props = {
-    messages: HistoryMessage[];
+    historyMessages: HistoryMessage[];
 };
 
-export default function ChatBoard({ messages }: Props) {
+export default function ChatBoard({ historyMessages }: Props) {
 
-    if (messages.length === 0) {
+    if (historyMessages.length === 0) {
         return <div className="h-full w-full">
             <EmptyChat />
         </div>
@@ -18,20 +18,20 @@ export default function ChatBoard({ messages }: Props) {
 
     return (
         <div className="px-4 py-6 space-y-6">
-            {messages.map((msg) => (
-                <div key={msg.tempId ?? msg.request_id}>
+            {historyMessages.map((messages) => (
+                <div className="space-y-4" key={messages.tempId ?? messages.request_id}>
                     <Question
-                        content={msg.question}
+                        content={messages.question}
                     />
 
                     {
-                        msg.pending
+                        messages.isPending
                             ?
                             (<Thinking />)
                             :
                             (
                                 <Answer
-                                    content={msg.answer || "Tôi bị ngu"}
+                                    messages={messages}
                                 />
                             )
 

@@ -17,7 +17,7 @@ export const useGetConversations = () => {
 	return useInfiniteQuery<
 		CursorResponse<Conversation>, // dữ liệu mỗi page
 		Error,                        // error
-		CursorResponse<Conversation>, // select (giữ nguyên)
+		InfiniteData<CursorResponse<Conversation>>,
 		ReturnType<typeof conversationKeys.list>, // queryKey type
 		string | null                
 	>({
