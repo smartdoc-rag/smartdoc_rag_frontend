@@ -14,19 +14,26 @@ export type BotMessage = {
     type: 'rag' | 'graphrag',
     content: string,
     created_at: Date,
-    citations: Citation[],
+    citations: RagCitation[] | GraphCitation[],
     word_count: number
     updated_at: Date,
 }
 
-export type Citation = {
+export type RagCitation = {
     file_id: number
     file_name?: string,
+    file_url?: string,
     page: number
     chunk?: string
     marker?: string
     start_line: number,
     end_line: number
+}
+
+export type GraphCitation = {
+    marker: string,
+    graph_entity_name: string,
+    graph_entity_type: string,
 }
 
 
