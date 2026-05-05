@@ -26,7 +26,7 @@ export const conversationService = {
 
 	getAllConversations: async (
 		param: CursorPaginationParams
-		): Promise<CursorResponse<Conversation>> => {
+	): Promise<CursorResponse<Conversation>> => {
 		const { limit, cursor } = param;
 		const params = new URLSearchParams();
 
