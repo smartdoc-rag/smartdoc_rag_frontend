@@ -9,10 +9,11 @@ import type { Conversation } from "@/types/conversation.type";
 import { useConfigStore } from "@/stores/useConfigStore";
 import type { AskParams } from "@/types/chat.type";
 import { useUpdateLastChat } from "@/hooks/use-conversation";
+import { conversationService } from "@/services/conversation.service";
 
 interface ChatModeProps {
 	onSendMessage: (param: AskParams) => void;
-	conversation: Conversation
+	conversation: Conversation;
 }
 
 export default function ChatMode({
@@ -21,9 +22,8 @@ export default function ChatMode({
 }: ChatModeProps) {
 	const [query, setQuery] = useState("");
 	const textareaRef = useRef<HTMLTextAreaElement>(null);
-	const { mutate } = useUpdateLastChat()
-	const { mode, searchConfig } = useConfigStore()
-
+	const { mutate } = useUpdateLastChat();
+	const { mode, searchConfig } = useConfigStore();
 
 	// Auto focus
 	useEffect(() => {
@@ -37,20 +37,24 @@ export default function ChatMode({
 		el.style.height = el.scrollHeight + "px";
 	};
 
-	const handleSend = () => {
+	const handleSend = async () => {
 		if (!query.trim()) return;
+
+		const res = await conversationService.getSelectedFile(conversation.id);
+
+		console.log("ID:", res);
 
 		const param: AskParams = {
 			convId: conversation.id,
-			isRerank: searchConfig.includes('rerank'),
-			isSelfRag: searchConfig.includes('self-rag'),
-			searchType: searchConfig.includes('hybrid') ? 'hybrid' : 'vector',
+			isRerank: searchConfig.includes("rerank"),
+			isSelfRag: searchConfig.includes("self-rag"),
+			searchType: searchConfig.includes("hybrid") ? "hybrid" : "vector",
 			responseType: mode,
 			question: query,
 			selectedFiles: [],
-		}
+		};
 
-		onSendMessage(param)
+		onSendMessage(param);
 		setQuery("");
 
 		if (textareaRef.current) {
@@ -61,7 +65,7 @@ export default function ChatMode({
 	const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
 		if (e.key === "Enter" && !e.shiftKey) {
 			e.preventDefault();
-			mutate(conversation.id)
+			mutate(conversation.id);
 			handleSend();
 		}
 	};

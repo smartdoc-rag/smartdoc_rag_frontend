@@ -1,5 +1,8 @@
 import api from "@/lib/axios";
-import type { CursorPaginationParams, CursorResponse } from "@/types/common/pagination.type";
+import type {
+	CursorPaginationParams,
+	CursorResponse,
+} from "@/types/common/pagination.type";
 import type { ApiResponse } from "@/types/common/response.type";
 import type {
 	Conversation,
@@ -9,7 +12,7 @@ import type {
 export const conversationService = {
 	createConversation: async (title: string): Promise<Conversation> => {
 		const res = await api.post<ApiResponse<Conversation>>(
-			"/conversation/create",
+			"/conversation/create/",
 			{
 				title,
 			},
@@ -25,17 +28,17 @@ export const conversationService = {
 	},
 
 	getAllConversations: async (
-		param: CursorPaginationParams
-		): Promise<CursorResponse<Conversation>> => {
+		param: CursorPaginationParams,
+	): Promise<CursorResponse<Conversation>> => {
 		const { limit, cursor } = param;
 		const params = new URLSearchParams();
 
 		if (cursor) params.append("cursor", cursor);
 		params.append("limit", limit.toString());
 
-		const res = await api.get<
-			ApiResponse<CursorResponse<Conversation>>
-		>(`/conversation?${params.toString()}`);
+		const res = await api.get<ApiResponse<CursorResponse<Conversation>>>(
+			`/conversation?${params.toString()}`,
+		);
 
 		const { data, success, error, message } = res.data;
 
@@ -43,7 +46,7 @@ export const conversationService = {
 			throw new Error(error || message || "Fetch failed");
 		}
 
-		return data
+		return data;
 	},
 
 	updateConversationTitle: async ({
@@ -126,6 +129,9 @@ export const conversationService = {
 		const res = await api.get<ApiResponse<{ file_ids: number[] }>>(
 			`/conversation/${id}/selected-files`,
 		);
+
+		console.log("RES: ", res);
+
 		const { success, data, message, error } = res.data;
 		if (!success || !data) {
 			throw new Error(error || message || "Lấy selected files thất bại");
