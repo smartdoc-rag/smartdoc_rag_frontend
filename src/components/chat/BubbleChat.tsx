@@ -1,7 +1,13 @@
-// components/BubbleChat.tsx
-import type { BotMessage } from "@/types/chat.type";
+import type { BotMessage, Citation } from "@/types/chat.type";
 
-export default function BubbleChat({ msg, className = "" }: { msg: BotMessage; className?: string }) {
+export default function BubbleChat({
+    msg,
+    className = "",
+}: {
+    msg: BotMessage;
+    className?: string;
+    onClickCitation?: (c: Citation) => void;
+}) {
     return (
         <div
             className={`
@@ -13,9 +19,6 @@ export default function BubbleChat({ msg, className = "" }: { msg: BotMessage; c
                 ${msg.type === 'graphrag' ? 'border-l-4 border-purple-500 dark:border-purple-400' : ''}
                 ${className}
             `}
-            style={{
-                boxShadow: 'var(--shadow-sm)',
-            }}
         >
             {/* Type badge */}
             <div className="flex items-center gap-2 mb-2">
@@ -33,7 +36,7 @@ export default function BubbleChat({ msg, className = "" }: { msg: BotMessage; c
 
             {/* Content */}
             <div className="prose prose-sm dark:prose-invert max-w-none">
-                {msg.content || "Toi dai dot"}
+                {msg.content || " abc "}
             </div>
         </div>
     );
