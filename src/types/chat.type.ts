@@ -1,3 +1,4 @@
+import type { CursorPaginationParams } from "./common/pagination.type"
 
 export type UserMessage = {
     id: number,
@@ -7,31 +8,27 @@ export type UserMessage = {
     updated_at: Date,
 }
 
-export type BotMessage = {
-    id: number,
-    request_message_id: number,
+//from history
+export type BotMessage = { 
+    response_id: number,
+    type: 'rag' | 'graphrag',
     content: string,
-    type: string,
     created_at: Date,
+    citations: Citation[],
+    word_count: number
     updated_at: Date,
 }
 
 export type Citation = {
     file_id: number
-    file_name?: string
-    chunk_id?: string
-    content?: string
-    score?: number
+    file_name?: string,
+    page: number
+    chunk?: string
+    marker?: string
+    start_line: number,
+    end_line: number
 }
 
-export type BotResponse = {
-    request_id: number
-    response_id: number
-    answer: string
-    citations: Citation[]
-    confidence: number | null
-    rewritten_query: string | null
-}
 
 export type AskParams = {
     convId: number,
@@ -45,13 +42,13 @@ export type AskParams = {
 }
 
 export type HistoryMessage = {
-  request_id: number
-  tempId?: string
-
-  question: string
-  answer: string
-
-  created_at: string
-
-  pending?: boolean
+    request_id: number,
+    question: string,
+    created_at: Date,
+    mode?: 'dual' | 'single',
+    responses: BotMessage[],
+    tempId?: string,
+    isPending?: boolean
 }
+
+export type getHistoryParam = {convId?: number } & CursorPaginationParams
