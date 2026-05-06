@@ -3,13 +3,13 @@ import { Button } from "@/components/ui/button";
 import { ArrowUp } from "lucide-react";
 import { Card } from "../ui/card";
 import { ChatConfig } from "../config/ChatConfig";
-import { ContextUsage } from "./button/ContextUsage";
 import { FileButton } from "./button/FileButton";
 import type { Conversation } from "@/types/conversation.type";
 import { useConfigStore } from "@/stores/useConfigStore";
 import type { AskParams } from "@/types/chat.type";
 import { useUpdateLastChat } from "@/hooks/use-conversation";
 import { conversationService } from "@/services/conversation.service";
+import { CleanerUsage } from "./button/CleanerUsage";
 
 interface ChatModeProps {
 	onSendMessage: (param: AskParams) => void;
@@ -93,7 +93,7 @@ export default function ChatMode({
 				<div className="flex items-center gap-1">
 					<FileButton conversation={conversation} />
 					<ChatConfig />
-					<ContextUsage />
+					<CleanerUsage convId={conversation.id} />
 				</div>
 				<Button
 					className="cursor-pointer"

@@ -42,5 +42,9 @@ export const chatService = {
         }
         console.log(data)
         return data
+    },
+
+    clearHistory: async(convId?: number): Promise<void> => {
+        await api.delete(`/chat/${convId}/clear-history/`)
     }
 }

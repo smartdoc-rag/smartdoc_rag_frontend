@@ -117,7 +117,69 @@ export const useAsk = (convId?: number) => {
             ),
           })),
         }
-      })
+      }) 
     }
+  })
+}
+
+
+export const useClearHistory = (convId?: number) => {
+  const queryClient = useQueryClient()
+  const queryKey = chatQueryKeys.list(convId)
+
+  return useMutation({
+    mutationFn: async (id?: number) => {
+      const conversationId = id || convId
+      if (!conversationId) throw new Error("Conversation ID is required")
+      return await chatService.clearHistory(conversationId)
+    },
+
+    onMutate: async () => {
+      await queryClient.cancelQueries({ queryKey })
+
+      const previousData = queryClient.getQueryData<
+        InfiniteData<CursorResponse<HistoryMessage>>
+      >(queryKey)
+
+      queryClient.setQueryData<
+        InfiniteData<CursorResponse<HistoryMessage>>
+      >(queryKey, (old) => {
+        if (!old) return old
+
+        return {
+          ...old,
+          pages: old.pages.map((page) => ({
+            ...page,
+            items: [
+              {
+                request_id: -1,
+                question: "Conversation cleared",
+                created_at: new Date(),
+                responses: [],
+              } as HistoryMessage,
+            ],
+            meta: {
+              has_next: false,
+              next_cursor: null,
+            },
+          })),
+        }
+      })
+
+      return { previousData }
+    },
+
+    onError: (_err, _vars, context) => {
+      if (context?.previousData) {
+        queryClient.setQueryData(queryKey, context.previousData)
+      }
+    },
+
+    onSuccess: () => {
+      queryClient.invalidateQueries({
+        queryKey,
+        refetchType: 'none',
+      })
+    },
   })
 }
