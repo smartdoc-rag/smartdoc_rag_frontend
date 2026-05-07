@@ -13,12 +13,12 @@ export default function ChatPage() {
 	const convId = id ? Number(id) : undefined;
 
 	const { data: conversation } = useGetConvById(convId);
+	const { mutate, isPending } = useAsk(convId);
 	const messagesEndRef = useRef<HTMLDivElement>(null);
-	const loadMoreRef = useRef<HTMLDivElement>(null)
+	const loadMoreRef = useRef<HTMLDivElement>(null);
 	const containerRef = useRef<HTMLDivElement | null>(null);
 	const prevHeightRef = useRef(0);
 	const didInitialScroll = useRef(false);
-
 
 	const {
 		data: history,
@@ -27,7 +27,6 @@ export default function ChatPage() {
 		isFetchingNextPage,
 		isLoading,
 	} = useGetHistory(convId);
-	const { mutate } = useAsk(convId)
 
 	const handleFetchMore = useCallback(() => {
 		const container = containerRef.current;
@@ -48,8 +47,9 @@ export default function ChatPage() {
 		didInitialScroll.current = true;
 	}, [history]);
 
-	// lazy load 
+	// lazy load
 	useEffect(() => {
+		if (isPending) return;
 		const el = loadMoreRef.current;
 		if (!el) return;
 
@@ -66,7 +66,7 @@ export default function ChatPage() {
 		return () => {
 			observer.unobserve(el);
 		};
-	}, [handleFetchMore, hasNextPage, isFetchingNextPage]);
+	}, [handleFetchMore, hasNextPage, isFetchingNextPage, isPending]);
 
 	// giữ scroll ở vị trí hiện tại
 	useEffect(() => {
@@ -81,26 +81,24 @@ export default function ChatPage() {
 		}
 	}, [history]);
 
-	// data 
+	// data
 	const messages = useMemo(() => {
-		if (!history) return []
+		if (!history) return [];
 
 		return Array.from(
 			new Map(
 				history.pages
-					.flatMap(p => p.items)
+					.flatMap((p) => p.items)
 					.reverse()
-					.map(item => [item.request_id, item])
-			).values()
-		)
-	}, [history])
+					.map((item) => [item.tempId || item.request_id, item]),
+			).values(),
+		);
+	}, [history]);
 	if (!conversation) return null;
 
-
 	if (isLoading) {
-		return <LoadingInitMessages />
+		return <LoadingInitMessages />;
 	}
-
 
 	return (
 		<div className="h-full flex flex-col">
@@ -123,6 +121,7 @@ export default function ChatPage() {
 					<ChatMode
 						conversation={conversation}
 						onSendMessage={(param: AskParams) => mutate(param)}
+						isPending={isPending}
 					/>
 				</div>
 			</div>

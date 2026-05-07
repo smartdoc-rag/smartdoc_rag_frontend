@@ -14,11 +14,13 @@ import { CleanerUsage } from "./button/CleanerUsage";
 interface ChatModeProps {
 	onSendMessage: (param: AskParams) => void;
 	conversation: Conversation;
+	isPending?: boolean;
 }
 
 export default function ChatMode({
 	onSendMessage,
 	conversation,
+	isPending,
 }: ChatModeProps) {
 	const [query, setQuery] = useState("");
 	const textareaRef = useRef<HTMLTextAreaElement>(null);
@@ -38,33 +40,38 @@ export default function ChatMode({
 	};
 
 	const handleSend = async () => {
-		if (!query.trim()) return;
+		if (!query.trim() || isPending) return;
 
-		const res = await conversationService.getSelectedFile(conversation.id);
+		try {
+			const selectedFileIds = await conversationService.getSelectedFile(
+				conversation.id,
+			);
 
-		console.log("ID:", res);
+			const param: AskParams = {
+				convId: conversation.id,
+				isRerank: searchConfig.includes("rerank"),
+				isSelfRag: searchConfig.includes("self-rag"),
+				searchType: searchConfig.includes("hybrid") ? "hybrid" : "vector",
+				responseType: mode,
+				question: query,
+				selectedFiles: selectedFileIds,
+			};
 
-		const param: AskParams = {
-			convId: conversation.id,
-			isRerank: searchConfig.includes("rerank"),
-			isSelfRag: searchConfig.includes("self-rag"),
-			searchType: searchConfig.includes("hybrid") ? "hybrid" : "vector",
-			responseType: mode,
-			question: query,
-			selectedFiles: [],
-		};
+			onSendMessage(param);
+			setQuery("");
 
-		onSendMessage(param);
-		setQuery("");
-
-		if (textareaRef.current) {
-			textareaRef.current.style.height = "auto";
+			if (textareaRef.current) {
+				textareaRef.current.style.height = "auto";
+			}
+		} catch (error) {
+			console.error("Failed to get selected files:", error);
 		}
 	};
 
 	const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
 		if (e.key === "Enter" && !e.shiftKey) {
 			e.preventDefault();
+			if (isPending) return;
 			mutate(conversation.id);
 			handleSend();
 		}
@@ -99,7 +106,7 @@ export default function ChatMode({
 					className="cursor-pointer"
 					size="icon-lg"
 					onClick={handleSend}
-					disabled={!query.trim()}
+					disabled={!query.trim() || isPending}
 				>
 					<ArrowUp />
 				</Button>

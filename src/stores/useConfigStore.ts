@@ -1,19 +1,17 @@
 import { type ConfigStoreType } from "@/types/store.type";
 import { create } from "zustand";
 
-
 export const useConfigStore = create<ConfigStoreType>((set) => ({
-    searchConfig: [],
-    mode: "rag",
-    loading: false,
-    model: "qwen3.5",
+	searchConfig: [],
+	mode: "rag",
+	loading: false,
+	model: "qwen3.5:7b",
 
-    setMode: (mode) => set({ mode }),
+	setMode: (mode) => set({ mode }),
 
-    setSearchConfig: (config) => set({ searchConfig: config }),
+	setSearchConfig: (config) => set({ searchConfig: config }),
 
-    setLoading: (loading) => set({ loading }),
+	setLoading: (loading) => set({ loading }),
 
-    setModel: (model) => set({model}),
-    
+	setModel: (model) => set({ model }),
 }));

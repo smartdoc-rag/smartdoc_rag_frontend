@@ -1,4 +1,4 @@
-import { Button } from "@/components/ui/button"
+import { Button } from "@/components/ui/button";
 import {
 	Popover,
 	PopoverContent,
@@ -6,7 +6,7 @@ import {
 	PopoverHeader,
 	PopoverTitle,
 	PopoverTrigger,
-} from "@/components/ui/popover"
+} from "@/components/ui/popover";
 import {
 	AlertDialog,
 	AlertDialogCancel,
@@ -15,79 +15,78 @@ import {
 	AlertDialogFooter,
 	AlertDialogHeader,
 	AlertDialogTitle,
-} from "@/components/ui/alert-dialog"
-import { LoaderCircle, Trash2, AlertTriangle, Clock } from "lucide-react"
-import { useState } from "react"
-import { fileService } from "@/services/file.service"
-import { toast } from "sonner"
-import { useClearHistory } from "@/hooks/use-chat"
+} from "@/components/ui/alert-dialog";
+import { LoaderCircle, Trash2, AlertTriangle, Clock } from "lucide-react";
+import { useState } from "react";
+import { fileService } from "@/services/file.service";
+import { toast } from "sonner";
+import { useClearHistory } from "@/hooks/use-chat";
 
 export function CleanerUsage({ convId }: { convId: number }) {
-	const [isOpen, setIsOpen] = useState(false)
-	const [isDeletingFiles, setIsDeletingFiles] = useState(false)
+	const [isOpen, setIsOpen] = useState(false);
+	const [isDeletingFiles, setIsDeletingFiles] = useState(false);
 
-	const clearHistoryMutation = useClearHistory()
+	const clearHistoryMutation = useClearHistory();
 
 	const [confirmDialog, setConfirmDialog] = useState<{
-		isOpen: boolean
-		type: "files" | "history" | null
+		isOpen: boolean;
+		type: "files" | "history" | null;
 	}>({
 		isOpen: false,
 		type: null,
-	})
+	});
 
 	// ---------------- FILES ----------------
 	const handleDeleteFiles = async () => {
-		setIsDeletingFiles(true)
+		setIsDeletingFiles(true);
 		try {
-			await fileService.clearFiles(convId)
-			toast.success("Xóa file thành công")
+			await fileService.clearFiles(convId);
+			toast.success("Xóa file thành công");
 
-			setIsOpen(false)
+			setIsOpen(false);
 		} catch (error) {
-			console.error("Lỗi khi xóa file:", error)
-			toast.error("Lỗi khi xóa file")
+			console.error("Lỗi khi xóa file:", error);
+			toast.error("Lỗi khi xóa file");
 		} finally {
-			setIsDeletingFiles(false)
-			setConfirmDialog({ isOpen: false, type: null })
+			setIsDeletingFiles(false);
+			setConfirmDialog({ isOpen: false, type: null });
 		}
-	}
+	};
 
 	// ---------------- HISTORY ----------------
 	const handleDeleteHistory = async () => {
 		try {
-			await clearHistoryMutation.mutateAsync(convId)
+			await clearHistoryMutation.mutateAsync(convId);
 
-			toast.success("Xóa lịch sử chat thành công")
+			toast.success("Xóa lịch sử chat thành công");
 
-			setIsOpen(false)
+			setIsOpen(false);
 		} catch (error) {
-			console.error("Lỗi khi xóa lịch sử:", error)
-			toast.error("Xóa lịch sử chat thất bại")
+			console.error("Lỗi khi xóa lịch sử:", error);
+			toast.error("Xóa lịch sử chat thất bại");
 		} finally {
-			setConfirmDialog({ isOpen: false, type: null })
+			setConfirmDialog({ isOpen: false, type: null });
 		}
-	}
+	};
 
 	// ---------------- OPEN CONFIRM ----------------
 	const openConfirmDialog = (type: "files" | "history") => {
 		setConfirmDialog({
 			isOpen: true,
 			type,
-		})
-	}
+		});
+	};
 
 	// ---------------- CONFIRM ----------------
 	const handleConfirm = () => {
 		if (confirmDialog.type === "files") {
-			handleDeleteFiles()
+			handleDeleteFiles();
 		} else if (confirmDialog.type === "history") {
-			handleDeleteHistory()
+			handleDeleteHistory();
 		}
-	}
+	};
 
-	const isLoading =
-		isDeletingFiles || clearHistoryMutation.isPending
+	const isLoading = isDeletingFiles || clearHistoryMutation.isPending;
 
 	// ---------------- UI ----------------
 	return (
@@ -143,7 +142,8 @@ export function CleanerUsage({ convId }: { convId: number }) {
 							<div className="flex gap-2">
 								<AlertTriangle className="h-4 w-4 text-yellow-600 dark:text-yellow-500" />
 								<p className="text-xs text-yellow-700 dark:text-yellow-400">
-									Hành động này không thể hoàn tác. Dữ liệu đã xóa sẽ không thể khôi phục.
+									Hành động này không thể hoàn tác. Dữ liệu đã xóa sẽ không thể
+									khôi phục.
 								</p>
 							</div>
 						</div>
@@ -194,5 +194,5 @@ export function CleanerUsage({ convId }: { convId: number }) {
 				</AlertDialogContent>
 			</AlertDialog>
 		</>
-	)
+	);
 }
